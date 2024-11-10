@@ -1,0 +1,3 @@
+[submodule "CANAnalyzerParticle/src/DecentralizedLV-Boards"]
+	path = CANAnalyzerParticle/src/DecentralizedLV-Boards
+	url = https://github.com/mlights999/DecentralizedLV-Boards
