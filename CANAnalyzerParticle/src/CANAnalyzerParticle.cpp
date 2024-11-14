@@ -66,6 +66,7 @@ SYSTEM_MODE(SEMI_AUTOMATIC);  //Disable Cloud Connectivity
 #define NEW_RETAINED_COMMAND        'r'             //Continuously-sent message. First arg is address (hex). Next 8 args are the data bytes (in hex) b0, b1, b2...
 #define DATA_LOOP_COMMAND           'l'             //Sends messages on one address and ramps data value on masked bytes from 0-255.
 #define ADDR_LOOP_COMMAND           'o'             //Sends messages with the same data across a range of CAN addresses.
+#define VERSION_COMMAND             'v'             //Prints out the version of this firmware. Use this to determine supported commands
 
 //Hardware Macros
 #define CAN0_INT        A1                          // Set INT to pin x1
@@ -309,6 +310,10 @@ void parseCommand(){
             loopModeDelay = x3;
             if(loopModeDelay < 25) loopModeDelay = 25;
             Serial.printlnf("Starting address loop from 0x%x to 0x%x and delay %dms", addressLoopStart, addressLoopEnd, loopModeDelay);
+            break;
+            
+        case VERSION_COMMAND:
+            Serial.println(SOFTWARE_VERSION);
             break;
 
         default:

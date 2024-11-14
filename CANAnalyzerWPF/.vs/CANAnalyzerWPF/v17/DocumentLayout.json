@@ -3,13 +3,38 @@
   "WorkspaceRootPath": "C:\\Users\\mligh\\OneDrive\\CANAnalyzer\\CANAnalyzerWPF\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\mligh\\OneDrive\\CAN Analyzer\\CANAnalyzerWPF\\WpfApp1\\Model\\SerialCommand.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{3C6C3A19-6920-4144-8536-02575A2B084A}|CANAnalyzerWPF\\CANAnalyzerWPF.csproj|c:\\users\\mligh\\onedrive\\cananalyzer\\cananalyzerwpf\\cananalyzerwpf\\viewmodel\\common\\relaycommand.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3C6C3A19-6920-4144-8536-02575A2B084A}|CANAnalyzerWPF\\CANAnalyzerWPF.csproj|solutionrelative:cananalyzerwpf\\viewmodel\\common\\relaycommand.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\mligh\\OneDrive\\CAN Analyzer\\CANAnalyzerWPF\\WpfApp1\\MainWindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
+      "AbsoluteMoniker": "D:0:0:{3C6C3A19-6920-4144-8536-02575A2B084A}|CANAnalyzerWPF\\CANAnalyzerWPF.csproj|c:\\users\\mligh\\onedrive\\cananalyzer\\cananalyzerwpf\\cananalyzerwpf\\model\\serialbaudrates.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3C6C3A19-6920-4144-8536-02575A2B084A}|CANAnalyzerWPF\\CANAnalyzerWPF.csproj|solutionrelative:cananalyzerwpf\\model\\serialbaudrates.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3C6C3A19-6920-4144-8536-02575A2B084A}|CANAnalyzerWPF\\CANAnalyzerWPF.csproj|c:\\users\\mligh\\onedrive\\cananalyzer\\cananalyzerwpf\\cananalyzerwpf\\viewmodel\\cananalyzerviewmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3C6C3A19-6920-4144-8536-02575A2B084A}|CANAnalyzerWPF\\CANAnalyzerWPF.csproj|solutionrelative:cananalyzerwpf\\viewmodel\\cananalyzerviewmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3C6C3A19-6920-4144-8536-02575A2B084A}|CANAnalyzerWPF\\CANAnalyzerWPF.csproj|c:\\users\\mligh\\onedrive\\cananalyzer\\cananalyzerwpf\\cananalyzerwpf\\view\\mainwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3C6C3A19-6920-4144-8536-02575A2B084A}|CANAnalyzerWPF\\CANAnalyzerWPF.csproj|solutionrelative:cananalyzerwpf\\view\\mainwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3C6C3A19-6920-4144-8536-02575A2B084A}|CANAnalyzerWPF\\CANAnalyzerWPF.csproj|c:\\users\\mligh\\onedrive\\cananalyzer\\cananalyzerwpf\\cananalyzerwpf\\view\\mainwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
+      "RelativeMoniker": "D:0:0:{3C6C3A19-6920-4144-8536-02575A2B084A}|CANAnalyzerWPF\\CANAnalyzerWPF.csproj|solutionrelative:cananalyzerwpf\\view\\mainwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3C6C3A19-6920-4144-8536-02575A2B084A}|CANAnalyzerWPF\\CANAnalyzerWPF.csproj|c:\\users\\mligh\\onedrive\\cananalyzer\\cananalyzerwpf\\cananalyzerwpf\\model\\serialcommand.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3C6C3A19-6920-4144-8536-02575A2B084A}|CANAnalyzerWPF\\CANAnalyzerWPF.csproj|solutionrelative:cananalyzerwpf\\model\\serialcommand.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3C6C3A19-6920-4144-8536-02575A2B084A}|CANAnalyzerWPF\\CANAnalyzerWPF.csproj|c:\\users\\mligh\\onedrive\\cananalyzer\\cananalyzerwpf\\cananalyzerwpf\\app.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3C6C3A19-6920-4144-8536-02575A2B084A}|CANAnalyzerWPF\\CANAnalyzerWPF.csproj|solutionrelative:cananalyzerwpf\\app.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\mligh\\OneDrive\\CAN Analyzer\\CANAnalyzerWPF\\WpfApp1\\MainWindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\mligh\\OneDrive\\CAN Analyzer\\CANAnalyzerWPF\\WpfApp1\\MainWindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
     }
   ],
   "DocumentGroupContainers": [
@@ -19,26 +44,100 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 1,
+          "SelectedChildIndex": 0,
           "Children": [
-            {
-              "$type": "Bookmark",
-              "Name": "ST:0:0:{cce594b6-0c39-4442-ba28-10c64ac7e89f}"
-            },
             {
               "$type": "Document",
               "DocumentIndex": 0,
-              "Title": "SerialCommand.cs",
-              "DocumentMoniker": "C:\\Users\\mligh\\OneDrive\\CAN Analyzer\\CANAnalyzerWPF\\WpfApp1\\Model\\SerialCommand.cs",
-              "RelativeDocumentMoniker": "..\\..\\CAN Analyzer\\CANAnalyzerWPF\\WpfApp1\\Model\\SerialCommand.cs",
-              "ToolTip": "C:\\Users\\mligh\\OneDrive\\CAN Analyzer\\CANAnalyzerWPF\\WpfApp1\\Model\\SerialCommand.cs",
-              "RelativeToolTip": "..\\..\\CAN Analyzer\\CANAnalyzerWPF\\WpfApp1\\Model\\SerialCommand.cs",
+              "Title": "RelayCommand.cs",
+              "DocumentMoniker": "C:\\Users\\mligh\\OneDrive\\CANAnalyzer\\CANAnalyzerWPF\\CANAnalyzerWPF\\ViewModel\\Common\\RelayCommand.cs",
+              "RelativeDocumentMoniker": "CANAnalyzerWPF\\ViewModel\\Common\\RelayCommand.cs",
+              "ToolTip": "C:\\Users\\mligh\\OneDrive\\CANAnalyzer\\CANAnalyzerWPF\\CANAnalyzerWPF\\ViewModel\\Common\\RelayCommand.cs",
+              "RelativeToolTip": "CANAnalyzerWPF\\ViewModel\\Common\\RelayCommand.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABYAAABZAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-11-09T01:31:39.534Z"
+              "WhenOpened": "2024-11-14T23:07:48.244Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
               "DocumentIndex": 1,
+              "Title": "SerialBaudRates.cs",
+              "DocumentMoniker": "C:\\Users\\mligh\\OneDrive\\CANAnalyzer\\CANAnalyzerWPF\\CANAnalyzerWPF\\Model\\SerialBaudRates.cs",
+              "RelativeDocumentMoniker": "CANAnalyzerWPF\\Model\\SerialBaudRates.cs",
+              "ToolTip": "C:\\Users\\mligh\\OneDrive\\CANAnalyzer\\CANAnalyzerWPF\\CANAnalyzerWPF\\Model\\SerialBaudRates.cs",
+              "RelativeToolTip": "CANAnalyzerWPF\\Model\\SerialBaudRates.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAkAAAAnAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-11-14T22:37:08.718Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "MainWindow.xaml",
+              "DocumentMoniker": "C:\\Users\\mligh\\OneDrive\\CANAnalyzer\\CANAnalyzerWPF\\CANAnalyzerWPF\\View\\MainWindow.xaml",
+              "RelativeDocumentMoniker": "CANAnalyzerWPF\\View\\MainWindow.xaml",
+              "ToolTip": "C:\\Users\\mligh\\OneDrive\\CANAnalyzer\\CANAnalyzerWPF\\CANAnalyzerWPF\\View\\MainWindow.xaml",
+              "RelativeToolTip": "CANAnalyzerWPF\\View\\MainWindow.xaml",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
+              "WhenOpened": "2024-11-12T00:10:32.884Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "MainWindow.xaml.cs",
+              "DocumentMoniker": "C:\\Users\\mligh\\OneDrive\\CANAnalyzer\\CANAnalyzerWPF\\CANAnalyzerWPF\\View\\MainWindow.xaml.cs",
+              "RelativeDocumentMoniker": "CANAnalyzerWPF\\View\\MainWindow.xaml.cs",
+              "ToolTip": "C:\\Users\\mligh\\OneDrive\\CANAnalyzer\\CANAnalyzerWPF\\CANAnalyzerWPF\\View\\MainWindow.xaml.cs",
+              "RelativeToolTip": "CANAnalyzerWPF\\View\\MainWindow.xaml.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABQAAAAMAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-11-12T01:25:39.194Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "CANAnalyzerViewModel.cs",
+              "DocumentMoniker": "C:\\Users\\mligh\\OneDrive\\CANAnalyzer\\CANAnalyzerWPF\\CANAnalyzerWPF\\ViewModel\\CANAnalyzerViewModel.cs",
+              "RelativeDocumentMoniker": "CANAnalyzerWPF\\ViewModel\\CANAnalyzerViewModel.cs",
+              "ToolTip": "C:\\Users\\mligh\\OneDrive\\CANAnalyzer\\CANAnalyzerWPF\\CANAnalyzerWPF\\ViewModel\\CANAnalyzerViewModel.cs",
+              "RelativeToolTip": "CANAnalyzerWPF\\ViewModel\\CANAnalyzerViewModel.cs",
+              "ViewState": "AgIAAA8BAAAAAAAAAAAcwCIAAABuAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-11-12T00:23:22.519Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "App.xaml.cs",
+              "DocumentMoniker": "C:\\Users\\mligh\\OneDrive\\CANAnalyzer\\CANAnalyzerWPF\\CANAnalyzerWPF\\App.xaml.cs",
+              "RelativeDocumentMoniker": "CANAnalyzerWPF\\App.xaml.cs",
+              "ToolTip": "C:\\Users\\mligh\\OneDrive\\CANAnalyzer\\CANAnalyzerWPF\\CANAnalyzerWPF\\App.xaml.cs",
+              "RelativeToolTip": "CANAnalyzerWPF\\App.xaml.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABQAAAAMAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-11-11T22:43:50.787Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "SerialCommand.cs",
+              "DocumentMoniker": "C:\\Users\\mligh\\OneDrive\\CANAnalyzer\\CANAnalyzerWPF\\CANAnalyzerWPF\\Model\\SerialCommand.cs",
+              "RelativeDocumentMoniker": "CANAnalyzerWPF\\Model\\SerialCommand.cs",
+              "ToolTip": "C:\\Users\\mligh\\OneDrive\\CANAnalyzer\\CANAnalyzerWPF\\CANAnalyzerWPF\\Model\\SerialCommand.cs",
+              "RelativeToolTip": "CANAnalyzerWPF\\Model\\SerialCommand.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAYAAAAQAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-11-11T22:40:14.749Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
               "Title": "MainWindow.xaml",
               "DocumentMoniker": "C:\\Users\\mligh\\OneDrive\\CAN Analyzer\\CANAnalyzerWPF\\WpfApp1\\MainWindow.xaml",
               "RelativeDocumentMoniker": "..\\..\\CAN Analyzer\\CANAnalyzerWPF\\WpfApp1\\MainWindow.xaml",
@@ -49,13 +148,12 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 7,
               "Title": "MainWindow.xaml.cs",
               "DocumentMoniker": "C:\\Users\\mligh\\OneDrive\\CAN Analyzer\\CANAnalyzerWPF\\WpfApp1\\MainWindow.xaml.cs",
               "RelativeDocumentMoniker": "..\\..\\CAN Analyzer\\CANAnalyzerWPF\\WpfApp1\\MainWindow.xaml.cs",
               "ToolTip": "C:\\Users\\mligh\\OneDrive\\CAN Analyzer\\CANAnalyzerWPF\\WpfApp1\\MainWindow.xaml.cs",
               "RelativeToolTip": "..\\..\\CAN Analyzer\\CANAnalyzerWPF\\WpfApp1\\MainWindow.xaml.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2024-11-09T00:40:42.443Z"
             }
