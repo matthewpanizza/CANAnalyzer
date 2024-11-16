@@ -14,6 +14,7 @@ using System.Runtime.CompilerServices;
 using System.Windows.Threading;
 using System.Windows.Data;
 using CANAnalyzerWPF.Model;
+using System.Windows.Interop;
 
 namespace CANAnalyzerWPF.ViewModel
 {
@@ -30,21 +31,44 @@ namespace CANAnalyzerWPF.ViewModel
         private ObservableCollection<string> availablePorts;
         private string txData;
         private readonly object _rxDataLock = false;
+        private CANMessage uiMessage;
+        private int bank1MessageIndex;
+        private int bank2MessageIndex;
+        volatile bool receivedBackMessages;
 
         /// <summary>
         /// Constructor for the view model. Initializes the data lists, serial port lists, and baud rate list.
         /// </summary>
         public CANAnalyzerViewModel()
         {
-            RXData = new ObservableCollection<string>();
-            TXData = "";
-            Serial = new SerialPort();
-            Serial.DataReceived += new SerialDataReceivedEventHandler(SerialPort_DataReceived);
+
+            InitConstants();
             DiscoverSerialPorts();
-            BaudRate = SerialBaudRates.BaudRates.First();
         }
         //******************************************* Methods ********************************************//
         //************************************************************************************************//
+
+        /// <summary>
+        /// Initializes all variables to a default value. Clears lists.
+        /// </summary>
+        private void InitConstants()
+        {
+            TXData = "";
+            RXData = new ObservableCollection<string>();
+
+            receivedBackMessages = false;
+
+            uiMessage = new CANMessage();
+            bank1MessageIndex = 0;
+            bank2MessageIndex = 0;
+
+            MessageDictionary = new CANMessageDictionary(10, 10);
+
+            Serial = new SerialPort();
+            Serial.DataReceived += new SerialDataReceivedEventHandler(SerialPort_DataReceived);
+
+            BaudRate = SerialBaudRates.BaudRates.First();
+        }
 
         /// <summary>
         /// Discovers all COM ports available on the computer and populates list of strings with the port names
@@ -78,8 +102,8 @@ namespace CANAnalyzerWPF.ViewModel
             {
                 MessageBox.Show("Could not open " + PortName + "!");    //Show pop-up to user
             }
-
-
+            TXData = "i";
+            SendData();
         }
 
         /// <summary>
@@ -88,10 +112,10 @@ namespace CANAnalyzerWPF.ViewModel
         private void CloseSerialPort()
         { 
             Serial.Close();
-            COMSelectorEnabled = true;
-            OpenPortEnabled = true;
-            ClosePortEnabled = false;
-            SendDataEnabled = false;
+            COMSelectorEnabled = true;     //Enable COM port selector while not connected to serial
+            OpenPortEnabled = true;        //Enable open port button while not connected to serial
+            ClosePortEnabled = false;        //Disable close port button while not connected to serial
+            SendDataEnabled = false;         //Disable send data button while not connected to serial
         }
 
         /// <summary>
@@ -103,7 +127,9 @@ namespace CANAnalyzerWPF.ViewModel
         {
             while (Serial.BytesToRead > 0)
             {
-                RXData.Add(Serial.ReadLine().Trim('\n').Trim('\r'));
+                string rxData = Serial.ReadLine().Trim('\n').Trim('\r');
+                RXData.Add(rxData);
+                processSerialCommand(rxData);
             }
         }
 
@@ -114,6 +140,81 @@ namespace CANAnalyzerWPF.ViewModel
         {
             Serial.WriteLine(TXData);
             TXData = "";
+        }
+
+        /// <summary>
+        /// Clears all messages being emulated. Separated by bank.
+        /// </summary>
+        /// <param name="bankSet">Which bank to clear messages from. False = Bank 1, True = Bank 2.</param>
+        void flushMessageBank(bool bankSet)
+        {
+            if(bankSet) TXData = string.Format("{0}", (char)SerialCommand.FLUSH_COMMAND_2);
+            else TXData = string.Format("{0}", (char)SerialCommand.FLUSH_COMMAND_1);
+            SendData();
+        }
+
+        /// <summary>
+        /// Queries all messages being emulated by the Analyzer
+        /// </summary>
+        void queryMessages()
+        {
+            TXData = string.Format("{0}", (char)SerialCommand.QUERY_LIST_COMMAND);
+            SendData();
+        }
+
+        /// <summary>
+        /// Inserts a message into the message list, then updates the Analyzer list with serial commands
+        /// </summary>
+        /// <param name="bankSet">Indicates which bank to update. False for Bank 1, True for Bank 2</param>
+        /// <param name="newMsg">CANMessage that should be added to the MessageDictionary</param>
+        void sendNewMessage(bool bankSet, CANMessage newMsg)
+        {
+            if (bankSet) MessageDictionary.AddOrUpdateMessageBank2(newMsg);      //Add the new message to the recpective bank in MessageDictionary
+            else MessageDictionary.AddOrUpdateMessageBank1(newMsg);
+            updateMessages(bankSet);
+        }
+
+        /// <summary>
+        /// Updates the CAN Analyzer message list to match the MessageDictionary in this program. Flushes messages and then sends all non-zero messages in ObservableCollection
+        /// </summary>
+        /// <param name="bankSet">Indicates which bank to update. False for Bank 1, True for Bank 2</param>
+        void updateMessages(bool bankSet)
+        {
+            //Clear all messages on the Analyzer. These will get replaces by the messages in MessageDictionary
+            flushMessageBank(bankSet);
+            ObservableCollection<CANMessage> msgBank;
+            char command;
+            if (bankSet)
+            {
+                msgBank = MessageDictionary.MessageBank2;
+                command = (char)SerialCommand.NEW_BANK2_COMMAND;
+            }
+            else
+            {
+                msgBank = MessageDictionary.MessageBank1;
+                command = (char)SerialCommand.NEW_BANK1_COMMAND;
+            }
+            foreach (CANMessage msg in msgBank)                         //Send the entire list from this bank to the analyzer
+            {
+                if (msg.ID != 0) TXData = string.Format("{0} {1} {2} {3} {4} {5} {6} {7} {8} {9}", command, msg.IDHex, msg.Byte0Hex, msg.Byte1Hex, msg.Byte2Hex, msg.Byte3Hex, msg.Byte4Hex, msg.Byte5Hex, msg.Byte6Hex, msg.Byte7Hex);
+                SendData();
+                Thread.Sleep(30);
+            }
+        }
+
+        /// <summary>
+        /// Takes a string received over serial and parses out data based on the AppMode-formatted responses
+        /// </summary>
+        /// <param name="command"></param>
+        void processSerialCommand(string command)
+        {
+            string[] r = command.Split(',');
+            if (r.Length == 0) return;
+            string responseCode = r.First();
+            if (responseCode.Contains("END"))
+            {
+                receivedBackMessages = true;
+            }
         }
 
         //****************************************** Properties ******************************************//
@@ -150,7 +251,7 @@ namespace CANAnalyzerWPF.ViewModel
         /// <summary>
         /// A list of all data that was received by the serial port
         /// </summary>
-        public ObservableCollection<string> RXData { 
+        public ObservableCollection<string> RXData {
             get
             {
                 return rxData;
@@ -178,6 +279,58 @@ namespace CANAnalyzerWPF.ViewModel
             }
         }
 
+        /// <summary>
+        /// Dictionary of CAN Bus messages that are repeatedly sent. There are two separate banks for messages to allow flushing one set at a time.
+        /// </summary>
+        public CANMessageDictionary MessageDictionary { get; set; }
+
+        /// <summary>
+        /// Message values set by the UI. Can be then added to the dictionary using a button
+        /// </summary>
+        public CANMessage UICANMessage
+        {
+            get
+            {
+                return uiMessage;
+            }
+            set
+            {
+                uiMessage = value;
+                OnPropertyChanged();
+            }
+        }
+
+        /// <summary>
+        /// On the Messages tab, this is the message currently selected by the user. Corresponds to the MessageDictionary Bank1 location.
+        /// </summary>
+        public int SelectedBank1Index
+        {
+            get
+            {
+                return bank1MessageIndex;
+            }
+            set
+            {
+                bank1MessageIndex = value;
+                OnPropertyChanged();
+            }
+        }
+
+        /// <summary>
+        /// On the Messages tab, this is the message currently selected by the user. Corresponds to the MessageDictionary Bank2 location.
+        /// </summary>
+        public int SelectedBank2Index
+        {
+            get
+            {
+                return bank2MessageIndex;
+            }
+            set
+            {
+                bank2MessageIndex = value;
+                OnPropertyChanged();
+            }
+        }
 
         /// <summary>
         /// Serial port object being used to do serial communication. Allows access to statistics on the UI.
@@ -274,7 +427,9 @@ namespace CANAnalyzerWPF.ViewModel
             }
         }
 
-        // Command to open the serial port
+        /// <summary>
+        /// Command to open the serial port
+        /// </summary>
         private RelayCommand _openPortButtonCommand;
         public RelayCommand OpenPortButtonCommand
         {
@@ -287,7 +442,9 @@ namespace CANAnalyzerWPF.ViewModel
             }
         }
 
-        // Command to close the serial port
+        /// <summary>
+        /// Command to close the serial port
+        /// </summary>
         private RelayCommand _closePortButtonCommand;
         public RelayCommand ClosePortButtonCommand
         {
@@ -300,7 +457,9 @@ namespace CANAnalyzerWPF.ViewModel
             }
         }
 
-        // Command to close the serial port
+        /// <summary>
+        /// Command to refresh the list of available serial ports
+        /// </summary>
         private RelayCommand _refreshPortButtonCommand;
         public RelayCommand RefreshPortButtonCommand
         {
@@ -313,7 +472,9 @@ namespace CANAnalyzerWPF.ViewModel
             }
         }
 
-        // Command to save file
+        /// <summary>
+        /// Command to send data from the serial console tab
+        /// </summary>
         private RelayCommand _sendDataCommand;
         public RelayCommand SendDataCommand
         {
@@ -322,6 +483,67 @@ namespace CANAnalyzerWPF.ViewModel
                 return _sendDataCommand ?? (_sendDataCommand = new RelayCommand(obj =>
                 {
                     SendData();
+                }));
+            }
+        }
+        /// <summary>
+        /// Command to add a CAN message to message bank 1
+        /// </summary> 
+        private RelayCommand _addBank1MessageCommand;
+        public RelayCommand AddBank1MessageCommand
+        {
+            get
+            {
+                return _addBank1MessageCommand ?? (_addBank1MessageCommand = new RelayCommand(obj =>
+                {
+                    sendNewMessage(false, UICANMessage);
+                }));
+            }
+        }
+
+        /// <summary>
+        /// Command to add a CAN message to message bank 2
+        /// </summary>
+        private RelayCommand _addBank2MessageCommand;
+        public RelayCommand AddBank2MessageCommand
+        {
+            get
+            {
+                return _addBank2MessageCommand ?? (_addBank2MessageCommand = new RelayCommand(obj =>
+                {
+                    sendNewMessage(true, UICANMessage);
+                }));
+            }
+        }
+
+        /// <summary>
+        /// Command to remove the selected message from message bank 1. Takes index selected by the list box
+        /// </summary>
+        private RelayCommand _removeBank1MessageCommand;
+        public RelayCommand RemoveBank1MessageCommand
+        {
+            get
+            {
+                return _removeBank1MessageCommand ?? (_removeBank1MessageCommand = new RelayCommand(obj =>
+                {
+                    MessageDictionary.RemoveMessageBank1(SelectedBank1Index);
+                    updateMessages(false);
+                }));
+            }
+        }
+
+        /// <summary>
+        /// Command to remove the selected message from message bank 2. Takes index selected by the list box
+        /// </summary>
+        private RelayCommand _removeBank2MessageCommand;
+        public RelayCommand RemoveBank2MessageCommand
+        {
+            get
+            {
+                return _removeBank2MessageCommand ?? (_removeBank2MessageCommand = new RelayCommand(obj =>
+                {
+                    MessageDictionary.RemoveMessageBank2(SelectedBank2Index);
+                    updateMessages(true);
                 }));
             }
         }

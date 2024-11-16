@@ -67,7 +67,7 @@
         "xmemory": "cpp",
         "xtr1common": "cpp"
     },
-    "particle.firmwareVersion": "1.5.2",
-    "particle.targetPlatform": "xenon",
+    "particle.firmwareVersion": "3.3.0",
+    "particle.targetPlatform": "photon",
     "particle.debugWarningShown": true
 }

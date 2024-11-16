@@ -24,24 +24,105 @@
                 <Button Content="Open Port" Width="100" Height="25" VerticalAlignment="Bottom" Margin="25,10,0,0" Command="{Binding OpenPortButtonCommand}" IsEnabled="{Binding OpenPortEnabled}"/>
                 <Button Content="Close Port" Width="100" Height="25" VerticalAlignment="Bottom" Margin="25,10,0,0" Command="{Binding ClosePortButtonCommand}" IsEnabled="{Binding ClosePortEnabled}"/>
             </StackPanel>
-            <TabControl Margin="10,10">
+            <TabControl Margin="10,10" Width="1200" Height="500">
                 <!--Control for sending raw messages using Serial-->
                 <TabItem Header="Serial Console" >
                     <StackPanel Orientation="Vertical">
                         <Label Content="Input" FontFamily="Aptos" FontWeight="Bold" Margin="10,0,10,0"/>
                         <StackPanel Orientation="Horizontal">
-                            <TextBox x:Name="sendDataTextBox" Width="1075" Height="25" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,0,10,0" Text="{Binding TXData}"/>
+                            <TextBox x:Name="sendDataTextBox" Width="1050" Height="25" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,0,10,0" Text="{Binding TXData}">
+                                <!--<TextBox.InputBindings>
+                                    <KeyBinding Command="{Binding SendDataCommand}" Key="Enter" />
+                                </TextBox.InputBindings>-->
+                            </TextBox>
                             <Button Content="Send Data" Width="100" Height="25" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,0,10,0" Command="{Binding SendDataCommand}" IsEnabled="{Binding SendDataEnabled}"/>
                         </StackPanel>
                         <Label Content="Output" FontFamily="Aptos" FontWeight="Bold" Margin="10,10,10,0"/>
-                        <ListBox x:Name="receivedDataTextBox" Width="1200" Height="400" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,0,10,10" ItemsSource="{Binding RXData}"/>
+                        <ListBox x:Name="receivedDataTextBox" Width="1175" Height="375" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,0,10,10" ItemsSource="{Binding RXData}"/>
                     </StackPanel>
                 </TabItem>
                 <!--Control for doing continuout message emulation.-->
                 <TabItem Header="Message Emulation">
                     <StackPanel Orientation="Vertical">
-                        <Label Content="Input" FontFamily="Aptos" FontWeight="Bold" Margin="10,0,10,0"/>
-                        <Label Content="Output" FontFamily="Aptos" FontWeight="Bold" Margin="10,10,10,0"/>
+                        <Label Content="Bank 1 CAN Message" FontFamily="Aptos" FontWeight="Bold" Margin="10,25, 10, 0"/>
+                        <StackPanel Orientation="Vertical" Width="800" HorizontalAlignment="Left">
+                            <Grid Width="800">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition />
+                                    <ColumnDefinition />
+                                    <ColumnDefinition />
+                                    <ColumnDefinition />
+                                    <ColumnDefinition />
+                                    <ColumnDefinition />
+                                    <ColumnDefinition />
+                                    <ColumnDefinition />
+                                    <ColumnDefinition />
+                                    <ColumnDefinition  Width="150"/>
+                                    <ColumnDefinition  Width="150"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition />
+                                    <RowDefinition />
+                                </Grid.RowDefinitions>
+                                <Label Content="Address" FontFamily="Aptos" Grid.Column="0" Grid.Row="0"/>
+                                <TextBox x:Name="mAddress" Width="50" Height="25" Grid.Column="0" Grid.Row="1" Text="{Binding UICANMessage.IDHex}"/>
+                                <Label Content="Byte 0" FontFamily="Aptos" Grid.Column="1" Grid.Row="0"/>
+                                <TextBox x:Name="mByte0" Width="50" Height="25" Grid.Column="1" Grid.Row="1" Text="{Binding UICANMessage.Byte0Hex}"/>
+                                <Label Content="Byte 1" FontFamily="Aptos" Grid.Column="2" Grid.Row="0"/>
+                                <TextBox x:Name="mByte1" Width="50" Height="25" Grid.Column="2" Grid.Row="1" Text="{Binding UICANMessage.Byte1Hex}"/>
+                                <Label Content="Byte 2" FontFamily="Aptos" Grid.Column="3" Grid.Row="0"/>
+                                <TextBox x:Name="mByte2" Width="50" Height="25" Grid.Column="3" Grid.Row="1" Text="{Binding UICANMessage.Byte2Hex}"/>
+                                <Label Content="Byte 3" FontFamily="Aptos" Grid.Column="4" Grid.Row="0"/>
+                                <TextBox x:Name="mByte3" Width="50" Height="25" Grid.Column="4" Grid.Row="1" Text="{Binding UICANMessage.Byte3Hex}"/>
+                                <Label Content="Byte 4" FontFamily="Aptos" Grid.Column="5" Grid.Row="0"/>
+                                <TextBox x:Name="mByte4" Width="50" Height="25" Grid.Column="5" Grid.Row="1" Text="{Binding UICANMessage.Byte4Hex}"/>
+                                <Label Content="Byte 5" FontFamily="Aptos" Grid.Column="6" Grid.Row="0"/>
+                                <TextBox x:Name="mByte5" Width="50" Height="25" Grid.Column="6" Grid.Row="1" Text="{Binding UICANMessage.Byte5Hex}"/>
+                                <Label Content="Byte 6" FontFamily="Aptos" Grid.Column="7" Grid.Row="0"/>
+                                <TextBox x:Name="mByte6" Width="50" Height="25" Grid.Column="7" Grid.Row="1" Text="{Binding UICANMessage.Byte6Hex}"/>
+                                <Label Content="Byte 7" FontFamily="Aptos" Grid.Column="8" Grid.Row="0"/>
+                                <TextBox x:Name="mByte7" Width="50" Height="25" Grid.Column="8" Grid.Row="1" Text="{Binding UICANMessage.Byte7Hex}"/>
+                                <Button Content="Add Bank 1 Message" Width="125" Height="25" Grid.Column="9" Grid.Row="1" Command="{Binding AddBank1MessageCommand}" IsEnabled="{Binding SendDataEnabled}"/>
+                                <Button Content="Add Bank 2 Message" Width="125" Height="25" Grid.Column="10" Grid.Row="1" Command="{Binding AddBank2MessageCommand}" IsEnabled="{Binding SendDataEnabled}"/>
+                            </Grid>
+                        </StackPanel>
+                        
+                        
+                        <StackPanel Orientation="Horizontal" Height="400">
+                            <StackPanel Orientation="Vertical">
+                                <ListBox Width="500" Height="310" Margin="10 10" ItemsSource="{Binding MessageDictionary.MessageBank1}" SelectedIndex="{Binding SelectedBank1Index}">
+                                    <ListBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <Label Content="{Binding Message}"/>
+                                        </DataTemplate>
+                                    </ListBox.ItemTemplate>
+
+                                    <ListBox.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <StackPanel IsItemsHost="True" Orientation="Vertical"/>
+                                        </ItemsPanelTemplate>
+                                    </ListBox.ItemsPanel>
+                                </ListBox>
+                                <Button Content="Remove Bank 1 Message" Width="200" Height="25" Grid.Column="9" Grid.Row="1" Command="{Binding RemoveBank1MessageCommand}" IsEnabled="{Binding SendDataEnabled}"/>
+                            </StackPanel>
+
+                            <StackPanel Orientation="Vertical">
+                                <ListBox Width="500" Height="310" Margin="10 10" ItemsSource="{Binding MessageDictionary.MessageBank2}" SelectedIndex="{Binding SelectedBank2Index}">
+                                    <ListBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <Label Content="{Binding Message}"/>
+                                        </DataTemplate>
+                                    </ListBox.ItemTemplate>
+
+                                    <ListBox.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <StackPanel IsItemsHost="True" Orientation="Vertical"/>
+                                        </ItemsPanelTemplate>
+                                    </ListBox.ItemsPanel>
+                                </ListBox>
+                                <Button Content="Remove Bank 2 Message" Width="200" Height="25" Grid.Column="9" Grid.Row="1" Command="{Binding RemoveBank2MessageCommand}" IsEnabled="{Binding SendDataEnabled}"/>
+                            </StackPanel>
+                        </StackPanel>
                     </StackPanel>
                 </TabItem>
                 <!--Control for receiving filtered messages-->
