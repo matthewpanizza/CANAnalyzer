@@ -44,9 +44,8 @@
                 <!--Control for doing continuout message emulation.-->
                 <TabItem Header="Message Emulation">
                     <StackPanel Orientation="Vertical">
-                        <Label Content="Bank 1 CAN Message" FontFamily="Aptos" FontWeight="Bold" Margin="10,25, 10, 0"/>
-                        <StackPanel Orientation="Vertical" Width="800" HorizontalAlignment="Left">
-                            <Grid Width="800">
+                        <StackPanel Orientation="Vertical" Width="950" HorizontalAlignment="Left">
+                            <Grid Width="950">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition />
                                     <ColumnDefinition />
@@ -57,6 +56,7 @@
                                     <ColumnDefinition />
                                     <ColumnDefinition />
                                     <ColumnDefinition />
+                                    <ColumnDefinition  Width="150"/>
                                     <ColumnDefinition  Width="150"/>
                                     <ColumnDefinition  Width="150"/>
                                 </Grid.ColumnDefinitions>
@@ -82,8 +82,9 @@
                                 <TextBox x:Name="mByte6" Width="50" Height="25" Grid.Column="7" Grid.Row="1" Text="{Binding UICANMessage.Byte6Hex}"/>
                                 <Label Content="Byte 7" FontFamily="Aptos" Grid.Column="8" Grid.Row="0"/>
                                 <TextBox x:Name="mByte7" Width="50" Height="25" Grid.Column="8" Grid.Row="1" Text="{Binding UICANMessage.Byte7Hex}"/>
-                                <Button Content="Add Bank 1 Message" Width="125" Height="25" Grid.Column="9" Grid.Row="1" Command="{Binding AddBank1MessageCommand}" IsEnabled="{Binding SendDataEnabled}"/>
-                                <Button Content="Add Bank 2 Message" Width="125" Height="25" Grid.Column="10" Grid.Row="1" Command="{Binding AddBank2MessageCommand}" IsEnabled="{Binding SendDataEnabled}"/>
+                                <Button Content="Send Once" Width="125" Height="25" Grid.Column="9" Grid.Row="1" Command="{Binding AddBank1MessageCommand}" IsEnabled="{Binding SendDataEnabled}"/>
+                                <Button Content="Add Bank 1 Message" Width="125" Height="25" Grid.Column="10" Grid.Row="1" Command="{Binding AddBank1MessageCommand}" IsEnabled="{Binding SendDataEnabled}"/>
+                                <Button Content="Add Bank 2 Message" Width="125" Height="25" Grid.Column="11" Grid.Row="1" Command="{Binding AddBank2MessageCommand}" IsEnabled="{Binding SendDataEnabled}"/>
                             </Grid>
                         </StackPanel>
                         
@@ -127,16 +128,49 @@
                 </TabItem>
                 <!--Control for receiving filtered messages-->
                 <TabItem Header="Filtered Message Table">
-                    <StackPanel Orientation="Vertical">
-                        <Label Content="Input" FontFamily="Aptos" FontWeight="Bold" Margin="10,0,10,0"/>
-                        <Label Content="Output" FontFamily="Aptos" FontWeight="Bold" Margin="10,10,10,0"/>
+                    <StackPanel Orientation="Horizontal">
+                        <Grid Width="600">
+                            <DataGrid Name="DistinctMessages" ItemsSource="{Binding DistinctCANMessages}" AutoGenerateColumns="False">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Timestamp (ms)"  Binding="{Binding Timestamp}"/>
+                                    <DataGridTextColumn Header="CAN ID" Binding="{Binding IDHex}" />
+                                    <DataGridTextColumn Header="Byte 0" Binding="{Binding Byte0Hex}" />
+                                    <DataGridTextColumn Header="Byte 1" Binding="{Binding Byte1Hex}" />
+                                    <DataGridTextColumn Header="Byte 2" Binding="{Binding Byte2Hex}" />
+                                    <DataGridTextColumn Header="Byte 3" Binding="{Binding Byte3Hex}" />
+                                    <DataGridTextColumn Header="Byte 4" Binding="{Binding Byte4Hex}" />
+                                    <DataGridTextColumn Header="Byte 5" Binding="{Binding Byte5Hex}" />
+                                    <DataGridTextColumn Header="Byte 6" Binding="{Binding Byte6Hex}" />
+                                    <DataGridTextColumn Header="Byte 7" Binding="{Binding Byte7Hex}" />
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </Grid>
                     </StackPanel>
                 </TabItem>
                 <!--Control for dumping raw CAN data-->
                 <TabItem Header="Raw Message Table">
-                    <StackPanel Orientation="Vertical">
-                        <Label Content="Input" FontFamily="Aptos" FontWeight="Bold" Margin="10,0,10,0"/>
-                        <Label Content="Output" FontFamily="Aptos" FontWeight="Bold" Margin="10,10,10,0"/>
+                    <StackPanel Orientation="Horizontal">
+                        <Grid Width="600">
+                            <DataGrid Name="AllMessages" ItemsSource="{Binding AllCANMessages}" AutoGenerateColumns="False">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Timestamp (ms)"  Binding="{Binding Timestamp}"/>
+                                    <DataGridTextColumn Header="CAN ID" Binding="{Binding IDHex}" />
+                                    <DataGridTextColumn Header="Byte 0" Binding="{Binding Byte0Hex}" />
+                                    <DataGridTextColumn Header="Byte 1" Binding="{Binding Byte1Hex}" />
+                                    <DataGridTextColumn Header="Byte 2" Binding="{Binding Byte2Hex}" />
+                                    <DataGridTextColumn Header="Byte 3" Binding="{Binding Byte3Hex}" />
+                                    <DataGridTextColumn Header="Byte 4" Binding="{Binding Byte4Hex}" />
+                                    <DataGridTextColumn Header="Byte 5" Binding="{Binding Byte5Hex}" />
+                                    <DataGridTextColumn Header="Byte 6" Binding="{Binding Byte6Hex}" />
+                                    <DataGridTextColumn Header="Byte 7" Binding="{Binding Byte7Hex}" />
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </Grid>
+                        <StackPanel Orientation="Vertical">
+                            <Button Content="Order Messages By ID" Width="200" Height="25" Grid.Column="9" VerticalAlignment="Top" Margin="20,20" Command="{Binding OrderReceivedMessages}" IsEnabled="{Binding SendDataEnabled}"/>
+                            <Button Content="Save Messages To File" Width="200" Height="25" Grid.Column="9" VerticalAlignment="Top" Margin="20,20" Command="{Binding SaveMessagesToFile}" IsEnabled="{Binding SendDataEnabled}"/>
+                            <Button Content="Clear Messages" Width="200" Height="25" Grid.Column="9" VerticalAlignment="Top" Margin="20,20" Command="{Binding ClearReceivedMessages}" IsEnabled="{Binding SendDataEnabled}"/>
+                        </StackPanel>
                     </StackPanel>
                 </TabItem>
             </TabControl>

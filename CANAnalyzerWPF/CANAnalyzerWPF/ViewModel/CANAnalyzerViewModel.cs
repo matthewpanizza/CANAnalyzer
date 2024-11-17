@@ -15,6 +15,7 @@ using System.Windows.Threading;
 using System.Windows.Data;
 using CANAnalyzerWPF.Model;
 using System.Windows.Interop;
+using System.IO;
 
 namespace CANAnalyzerWPF.ViewModel
 {
@@ -29,8 +30,11 @@ namespace CANAnalyzerWPF.ViewModel
         private bool sendDataEnabled = false;
         private ObservableCollection<string> rxData;
         private ObservableCollection<string> availablePorts;
+        private ObservableCollection<CANMessage> allCANMessages;
+        private ObservableCollection<CANMessage> distinctCANMessages;
         private string txData;
         private readonly object _rxDataLock = false;
+        private readonly object _allDataLock = false;
         private CANMessage uiMessage;
         private int bank1MessageIndex;
         private int bank2MessageIndex;
@@ -55,6 +59,9 @@ namespace CANAnalyzerWPF.ViewModel
         {
             TXData = "";
             RXData = new ObservableCollection<string>();
+
+            allCANMessages = new ObservableCollection<CANMessage>();
+            distinctCANMessages = new ObservableCollection<CANMessage>();
 
             receivedBackMessages = false;
 
@@ -128,7 +135,7 @@ namespace CANAnalyzerWPF.ViewModel
             while (Serial.BytesToRead > 0)
             {
                 string rxData = Serial.ReadLine().Trim('\n').Trim('\r');
-                RXData.Add(rxData);
+                //RXData.Add(rxData);
                 processSerialCommand(rxData);
             }
         }
@@ -159,6 +166,18 @@ namespace CANAnalyzerWPF.ViewModel
         void queryMessages()
         {
             TXData = string.Format("{0}", (char)SerialCommand.QUERY_LIST_COMMAND);
+            SendData();
+        }
+
+        /// <summary>
+        /// Transmits a CAN Message one time
+        /// </summary>
+        /// <param name="msg">CANMessage that should be transmitted one time</param>
+        void sendMessageOnce(CANMessage msg)
+        {
+            char command = (char)SerialCommand.SINGLE_PACKET_COMMAND;
+            if (msg.ID == 0) return;
+            TXData = string.Format("{0} {1} {2} {3} {4} {5} {6} {7} {8} {9}", command, msg.IDHex, msg.Byte0Hex, msg.Byte1Hex, msg.Byte2Hex, msg.Byte3Hex, msg.Byte4Hex, msg.Byte5Hex, msg.Byte6Hex, msg.Byte7Hex);
             SendData();
         }
 
@@ -202,6 +221,22 @@ namespace CANAnalyzerWPF.ViewModel
             }
         }
 
+        void updateDistinctMessages(CANMessage newMsg)
+        {
+            for (int k = 0; k < DistinctCANMessages.Count; k++)
+            {
+                if (DistinctCANMessages[k].ID == newMsg.ID)
+                {
+                    DistinctCANMessages[k] = new CANMessage(newMsg);
+                    return;
+                }
+            }
+            DistinctCANMessages.Add(newMsg);
+            
+            //Re-ordder by address when adding a new message
+            DistinctCANMessages = new ObservableCollection<CANMessage>(DistinctCANMessages.OrderBy(s => s.ID));
+        }
+
         /// <summary>
         /// Takes a string received over serial and parses out data based on the AppMode-formatted responses
         /// </summary>
@@ -211,15 +246,67 @@ namespace CANAnalyzerWPF.ViewModel
             string[] r = command.Split(',');
             if (r.Length == 0) return;
             string responseCode = r.First();
-            if (responseCode.Contains("END"))
+            if (responseCode.Contains("END"))           //Response from Message Query of all emulated messages that all messages have been printed
             {
                 receivedBackMessages = true;
+            }
+            else if(responseCode.Contains("AL"))        //Response from Address Loop
+            {
+
+            }
+            else if(responseCode.Contains("DL"))        //Response from Data Loop
+            {
+
+            }
+            else if(responseCode.Contains("A"))         //CAN Message sent while in "print all" mode
+            {
+                if (r.Length < 10) return;
+                CANMessage rx = new CANMessage(int.Parse(r[2]), int.Parse(r[3]), int.Parse(r[4]), int.Parse(r[5]), int.Parse(r[6]), int.Parse(r[7]), int.Parse(r[8]), int.Parse(r[9]), int.Parse(r[10]), int.Parse(r[1]));
+                RXData.Add(rx.Message);
+                Application.Current.Dispatcher.BeginInvoke(
+                DispatcherPriority.Background,
+                new Action(() => {
+                    AllCANMessages.Add(rx);
+                    updateDistinctMessages(rx);
+                }));
+                
             }
         }
 
         //****************************************** Properties ******************************************//
         //************************************************************************************************//
 
+        /// <summary>
+        /// All received CAN messages. Populated when running in receive all mode
+        /// </summary>
+        public ObservableCollection<CANMessage> AllCANMessages
+        {
+            get
+            {
+                return allCANMessages;
+            }
+            private set
+            {
+                allCANMessages = value;
+                OnPropertyChanged();
+            }
+        }
+
+        /// <summary>
+        /// All received CAN messages with a unique address. Populated when running in receive all mode
+        /// </summary>
+        public ObservableCollection<CANMessage> DistinctCANMessages
+        {
+            get
+            {
+                return distinctCANMessages;
+            }
+            private set
+            {
+                distinctCANMessages = value;
+                OnPropertyChanged();
+            }
+        }
 
         /// <summary>
         /// Returns which COM ports are available. Populated by the DiscoverSerialPorts function
@@ -486,6 +573,22 @@ namespace CANAnalyzerWPF.ViewModel
                 }));
             }
         }
+
+        /// <summary>
+        /// Command to add a CAN message to message bank 1
+        /// </summary> 
+        private RelayCommand _sendMessageOnceCommand;
+        public RelayCommand SendMessageOnceCommand
+        {
+            get
+            {
+                return _sendMessageOnceCommand ?? (_sendMessageOnceCommand = new RelayCommand(obj =>
+                {
+                    sendMessageOnce(UICANMessage);
+                }));
+            }
+        }
+
         /// <summary>
         /// Command to add a CAN message to message bank 1
         /// </summary> 
@@ -544,6 +647,72 @@ namespace CANAnalyzerWPF.ViewModel
                 {
                     MessageDictionary.RemoveMessageBank2(SelectedBank2Index);
                     updateMessages(true);
+                }));
+            }
+        }
+
+        /// <summary>
+        /// Command to remove the selected message from message bank 2. Takes index selected by the list box
+        /// </summary>
+        private RelayCommand _clearReceivedMessages;
+        public RelayCommand ClearReceivedMessages
+        {
+            get
+            {
+                return _clearReceivedMessages ?? (_clearReceivedMessages = new RelayCommand(obj =>
+                {
+                    AllCANMessages.Clear();
+                }));
+            }
+        }
+
+        /// <summary>
+        /// Command to remove the selected message from message bank 2. Takes index selected by the list box
+        /// </summary>
+        private RelayCommand _orderReceivedMessages;
+        public RelayCommand OrderReceivedMessages
+        {
+            get
+            {
+                return _orderReceivedMessages ?? (_orderReceivedMessages = new RelayCommand(obj =>
+                {
+                    AllCANMessages = new ObservableCollection<CANMessage>(AllCANMessages.OrderBy(s => s.ID));
+                }));
+            }
+        }
+
+        /// <summary>
+        /// Command to remove the selected message from message bank 2. Takes index selected by the list box
+        /// </summary>
+        private RelayCommand _saveMessagesToFile;
+        public RelayCommand SaveMessagesToFile
+        {
+            get
+            {
+                return _saveMessagesToFile ?? (_saveMessagesToFile = new RelayCommand(obj =>
+                {
+                    // Configure save file dialog box
+                    var dialog = new Microsoft.Win32.SaveFileDialog();
+                    dialog.FileName = "AllTraces_" + DateTime.Now.ToString("M_d_yyyy"); // Default file name
+                    dialog.DefaultExt = ".txt"; // Default file extension
+                    dialog.Filter = "CSV file (*.csv)|*.csv| Text documents (.txt)|*.txt| All Files (.)|."; // Filter files by extension
+
+                    // Show save file dialog box
+                    bool? result = dialog.ShowDialog();
+
+                    if (result == true)
+                    {
+                        using (var w = new StreamWriter(dialog.FileName))
+                        {
+                            w.WriteLine("TimeStamp (ms),Address,Byte0,Byte1,Byte2,Byte3,Byte4,Byte5,Byte6,Byte7");
+                            w.Flush();
+                            foreach (CANMessage message in AllCANMessages)
+                            {
+                                w.WriteLine(message.CSV);
+                                w.Flush();
+                            }
+                        }
+                    }
                 }));
             }
         }

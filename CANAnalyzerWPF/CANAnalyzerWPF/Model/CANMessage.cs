@@ -13,7 +13,7 @@ namespace CANAnalyzerWPF.Model
     /// <summary>
     /// A class to represend the data in a CAN message. Contains fields and methods to easily update and access the data.
     /// </summary>
-    public class CANMessage
+    public class CANMessage : INotifyPropertyChanged
     {
         private int[] data = new int[8];
 
@@ -24,6 +24,7 @@ namespace CANAnalyzerWPF.Model
         {
             ID = 0;
             data = new int[8];
+            this.Timestamp = 0;
         }
 
         /// <summary>
@@ -35,6 +36,7 @@ namespace CANAnalyzerWPF.Model
             this.ID = oldMsg.ID;
             this.data = new int[8];
             for(int i = 0; i < 8; i++) { this.data[i] = oldMsg.data[i]; }
+            this.Timestamp = oldMsg.Timestamp;
         }
 
         /// <summary>
@@ -49,10 +51,12 @@ namespace CANAnalyzerWPF.Model
         /// <param name="d5">Data byte 5</param>
         /// <param name="d6">Data byte 6</param>
         /// <param name="d7">Data byte 7</param>
-        public CANMessage(int canID, int d0, int d1, int d2, int d3, int d4, int d5, int d6, int d7)
+        /// <param name="timestamp">Optional timestamp since start of program (for print all mode)</param>
+        public CANMessage(int canID, int d0, int d1, int d2, int d3, int d4, int d5, int d6, int d7, long timestamp = 0)
         {
             ID = canID;
             data = [d0, d1, d2, d3, d4, d5, d6, d7];
+            Timestamp = timestamp;
         }
 
         /// <summary>
@@ -60,10 +64,12 @@ namespace CANAnalyzerWPF.Model
         /// </summary>
         /// <param name="canID">29-bit Address</param>
         /// <param name="dat">Data array</param>
-        public CANMessage(int canID, int[] dat)
+        /// <param name="timestamp">Optional timestamp since start of program (for print all mode)</param>
+        public CANMessage(int canID, int[] dat, long timestamp = 0)
         {
             ID = canID;
             for (int i = 0; i < 8; i++) { data[i] = dat[i]; }
+            Timestamp = timestamp;
         }
 
         /// <summary>
@@ -121,6 +127,8 @@ namespace CANAnalyzerWPF.Model
 
         public string Byte7Hex { get => byteToHexString(7); set => hexStringToByte(7, value); }
 
+        public long Timestamp { get; set; }
+
         /// <summary>
         /// Returns a string with the address and data bytes in a human-readable form. Used for ListBox representation of a message
         /// </summary>
@@ -129,6 +137,17 @@ namespace CANAnalyzerWPF.Model
             get
             {
                 return string.Format("Address 0x{0} | Data: 0x{1} 0x{2} 0x{3} 0x{4} 0x{5} 0x{6} 0x{7} 0x{8}", IDHex, Byte0Hex, Byte1Hex, Byte2Hex, Byte3Hex, Byte4Hex, Byte5Hex, Byte6Hex, Byte7Hex);
+            }
+        }
+
+        /// <summary>
+        /// Returns a string with the address and data bytes in a human-readable form. Used for ListBox representation of a message
+        /// </summary>
+        public string CSV
+        {
+            get
+            {
+                return string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9}", Timestamp, IDHex, Byte0Hex, Byte1Hex, Byte2Hex, Byte3Hex, Byte4Hex, Byte5Hex, Byte6Hex, Byte7Hex);
             }
         }
 
