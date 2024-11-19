@@ -21,9 +21,11 @@ namespace CANAnalyzerWPF.ViewModel
 {
     public class CANAnalyzerViewModel : INotifyPropertyChanged
     {
-        
+        private string canAnalyzerInfo;
         private string portName;
         private int baudRate;
+        private int canBaudRate;
+        private int defaultCANBaudRate = 500000;
         private bool comSelectorEnabled = true;
         private bool openPortEnabled = true;
         private bool closePortEnabled = false;
@@ -75,6 +77,9 @@ namespace CANAnalyzerWPF.ViewModel
             Serial.DataReceived += new SerialDataReceivedEventHandler(SerialPort_DataReceived);
 
             BaudRate = SerialBaudRates.BaudRates.First();
+            CANBaudRate = CANBaudRates.BaudRates.Contains(defaultCANBaudRate) ? defaultCANBaudRate : CANBaudRates.BaudRates.First();    //By default set 500000
+
+            CANAnalyzerInfo = generateInfoString();
         }
 
         /// <summary>
@@ -111,6 +116,10 @@ namespace CANAnalyzerWPF.ViewModel
             }
             TXData = "i";
             SendData();
+            Thread.Sleep(30);
+            TXData = (char)SerialCommand.CAN_BAUD_COMMAND + " " + CANBaudRate.ToString();
+            SendData();
+            CANAnalyzerInfo = generateInfoString();
         }
 
         /// <summary>
@@ -123,6 +132,7 @@ namespace CANAnalyzerWPF.ViewModel
             OpenPortEnabled = true;        //Enable open port button while not connected to serial
             ClosePortEnabled = false;        //Disable close port button while not connected to serial
             SendDataEnabled = false;         //Disable send data button while not connected to serial
+            CANAnalyzerInfo = generateInfoString();
         }
 
         /// <summary>
@@ -135,7 +145,7 @@ namespace CANAnalyzerWPF.ViewModel
             while (Serial.BytesToRead > 0)
             {
                 string rxData = Serial.ReadLine().Trim('\n').Trim('\r');
-                //RXData.Add(rxData);
+                RXData.Add(rxData);
                 processSerialCommand(rxData);
             }
         }
@@ -145,8 +155,16 @@ namespace CANAnalyzerWPF.ViewModel
         /// </summary>
         public void SendData()
         {
-            Serial.WriteLine(TXData);
-            TXData = "";
+            try
+            {
+                Serial.WriteLine(TXData);
+                TXData = "";
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Could not send data on " + PortName + "! " + ex.ToString());    //Show pop-up to user
+            }
+            
         }
 
         /// <summary>
@@ -237,6 +255,16 @@ namespace CANAnalyzerWPF.ViewModel
             DistinctCANMessages = new ObservableCollection<CANMessage>(DistinctCANMessages.OrderBy(s => s.ID));
         }
 
+        private string generateInfoString()
+        {
+            string info = "";
+            if (Serial.IsOpen)
+            {
+                info = " (Port: " + Serial.PortName + ", Baud Rate: " + CANBaudRate.ToString() + ")";
+            }
+            return "CAN Analyzer" + info;
+        }
+
         /// <summary>
         /// Takes a string received over serial and parses out data based on the AppMode-formatted responses
         /// </summary>
@@ -275,6 +303,22 @@ namespace CANAnalyzerWPF.ViewModel
 
         //****************************************** Properties ******************************************//
         //************************************************************************************************//
+
+        /// <summary>
+        /// String containing info about the CAN analyzer for display as the header
+        /// </summary>
+        public string CANAnalyzerInfo
+        {
+            get
+            {
+                return canAnalyzerInfo;
+            }
+            set
+            {
+                canAnalyzerInfo = value;
+                OnPropertyChanged();
+            }
+        }
 
         /// <summary>
         /// All received CAN messages. Populated when running in receive all mode
@@ -332,6 +376,17 @@ namespace CANAnalyzerWPF.ViewModel
             get
             {
                 return SerialBaudRates.BaudRates;
+            }
+        }
+
+        /// <summary>
+        /// Returns a list of baud rates the CAN Bus can operate at. This is a fixed list set in SerialBaudRate.
+        /// </summary>
+        public static ObservableCollection<int> AvailableCANBaudRates
+        {
+            get
+            {
+                return CANBaudRates.BaudRates;
             }
         }
 
@@ -515,6 +570,19 @@ namespace CANAnalyzerWPF.ViewModel
         }
 
         /// <summary>
+        /// Gets the baud rate the CAN Bus operates at
+        /// </summary>
+        public int CANBaudRate
+        {
+            get { return canBaudRate; }
+            set
+            {
+                canBaudRate = value;
+                OnPropertyChanged();
+            }
+        }
+
+        /// <summary>
         /// Command to open the serial port
         /// </summary>
         private RelayCommand _openPortButtonCommand;
@@ -669,6 +737,21 @@ namespace CANAnalyzerWPF.ViewModel
         /// <summary>
         /// Command to remove the selected message from message bank 2. Takes index selected by the list box
         /// </summary>
+        private RelayCommand _clearFilterMessages;
+        public RelayCommand ClearFilterMessages
+        {
+            get
+            {
+                return _clearFilterMessages ?? (_clearFilterMessages = new RelayCommand(obj =>
+                {
+                    DistinctCANMessages.Clear();
+                }));
+            }
+        }
+
+        /// <summary>
+        /// Command to remove the selected message from message bank 2. Takes index selected by the list box
+        /// </summary>
         private RelayCommand _orderReceivedMessages;
         public RelayCommand OrderReceivedMessages
         {
@@ -707,6 +790,42 @@ namespace CANAnalyzerWPF.ViewModel
                             w.WriteLine("TimeStamp (ms),Address,Byte0,Byte1,Byte2,Byte3,Byte4,Byte5,Byte6,Byte7");
                             w.Flush();
                             foreach (CANMessage message in AllCANMessages)
+                            {
+                                w.WriteLine(message.CSV);
+                                w.Flush();
+                            }
+                        }
+                    }
+                }));
+            }
+        }
+
+        /// <summary>
+        /// Command to remove the selected message from message bank 2. Takes index selected by the list box
+        /// </summary>
+        private RelayCommand _saveFilterMessagesToFile;
+        public RelayCommand SaveFilterMessagesToFile
+        {
+            get
+            {
+                return _saveFilterMessagesToFile ?? (_saveFilterMessagesToFile = new RelayCommand(obj =>
+                {
+                    // Configure save file dialog box
+                    var dialog = new Microsoft.Win32.SaveFileDialog();
+                    dialog.FileName = "FilterTraces_" + DateTime.Now.ToString("M_d_yyyy"); // Default file name
+                    dialog.DefaultExt = ".txt"; // Default file extension
+                    dialog.Filter = "CSV file (*.csv)|*.csv| Text documents (.txt)|*.txt| All Files (.)|."; // Filter files by extension
+
+                    // Show save file dialog box
+                    bool? result = dialog.ShowDialog();
+
+                    if (result == true)
+                    {
+                        using (var w = new StreamWriter(dialog.FileName))
+                        {
+                            w.WriteLine("TimeStamp (ms),Address,Byte0,Byte1,Byte2,Byte3,Byte4,Byte5,Byte6,Byte7");
+                            w.Flush();
+                            foreach (CANMessage message in DistinctCANMessages)
                             {
                                 w.WriteLine(message.CSV);
                                 w.Flush();

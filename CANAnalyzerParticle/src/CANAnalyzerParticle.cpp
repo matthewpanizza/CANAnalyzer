@@ -159,21 +159,21 @@ void parseCommand(){
         case CAN_BAUD_COMMAND:
             if(d0 > 0){                         //Take argument 0 as the new baud rate. Sanity check that it is positive
                 canController.changeCANSpeed(d0);           //Take decimal representation
-                if(appConnected) Serial.printlnf("CBR,%d", convertBaudRateToParticle(canController.CurrentBaudRate()));
-                else Serial.printlnf("Updated CAN baud rate to: %d", convertBaudRateToParticle(canController.CurrentBaudRate()));   //Echo to user new baud rate
+                if(appConnected) Serial.printlnf("CBR,%lu", convertBaudRateToParticle(canController.CurrentBaudRate()));
+                else Serial.printlnf("Updated CAN baud rate to: %lu", convertBaudRateToParticle(canController.CurrentBaudRate()));   //Echo to user new baud rate
                 updateEEPROM();                 //Write new serial config to have serial retained on next boot
             }
-            else{
-                if(appConnected) Serial.println("CBR,ERR");
-                else Serial.println("Error! Baud rate was negative!");
+            else{                               //If baud rate is 0, then print out the current baud rate
+                if(appConnected) Serial.printlnf("CBR,%lu", convertBaudRateToParticle(canController.CurrentBaudRate()));
+                else Serial.printlnf("CAN baud rate: %lu", convertBaudRateToParticle(canController.CurrentBaudRate()));   //Echo to user current baud rate
             }
             break;
 
         case SERIAL_BAUD_COMMAND:               //Command to update the current baud rate of the Serial port
             if(d0 > 0){                         //Take argument 0 as the new baud rate. Sanity check that it is positive
                 currentBaudRate = d0;           //Take decimal representation
-                if(appConnected) Serial.printlnf("BR,%d", convertBaudRateToParticle(canController.CurrentBaudRate()));
-                else Serial.printlnf("Updating Serial baud rate to: %d", currentBaudRate);   //Echo to user new baud rate
+                if(appConnected) Serial.printlnf("BR,%lu", convertBaudRateToParticle(canController.CurrentBaudRate()));
+                else Serial.printlnf("Updating Serial baud rate to: %lu", currentBaudRate);   //Echo to user new baud rate
                 delay(100);
                 Serial.end();                   //End serial at current baud rate
                 updateEEPROM();                 //Write new serial config to have serial retained on next boot
@@ -221,8 +221,8 @@ void parseCommand(){
             if(!appConnected) Serial.println("============ DISCOVERED CAN IDS ==============");                   //Print header
             if(!appConnected) Serial.println("=     ID     x0 x1 x2 x3 x4 x5 x6 x7 Updated =");
             for(CANTX &msg: messageDictionary.RXIDs){                                           //Loop over all IDs and print address and data
-                if(appConnected) Serial.printlnf("M,%d,%d,%d,%d,%d,%d,%d,%d,%d,%c",msg.addr,msg.byte0,msg.byte1,msg.byte2,msg.byte3,msg.byte4,msg.byte5,msg.byte6,msg.byte7,(msg.latest)?'*':' ');
-                else Serial.printlnf("= 0x%08x %02x %02x %02x %02x %02x %02x %02x %02x    %c    =",msg.addr,msg.byte0,msg.byte1,msg.byte2,msg.byte3,msg.byte4,msg.byte5,msg.byte6,msg.byte7,(msg.latest)?'*':' ');
+                if(appConnected) Serial.printlnf("M,%lu,%d,%d,%d,%d,%d,%d,%d,%d,%c",msg.addr,msg.byte0,msg.byte1,msg.byte2,msg.byte3,msg.byte4,msg.byte5,msg.byte6,msg.byte7,(msg.latest)?'*':' ');
+                else Serial.printlnf("= 0x%08lx %02x %02x %02x %02x %02x %02x %02x %02x    %c    =",msg.addr,msg.byte0,msg.byte1,msg.byte2,msg.byte3,msg.byte4,msg.byte5,msg.byte6,msg.byte7,(msg.latest)?'*':' ');
                 msg.latest = false;                                                               //Set latest to false so next print will show change
             }
             if(appConnected) Serial.println("END");
@@ -235,8 +235,8 @@ void parseCommand(){
             if(!appConnected) Serial.println("=     ID     x0 x1 x2 x3 x4 x5 x6 x7 Updated =");
             for(CANTX &msg: messageDictionary.RXIDs){                                           //Loop over all IDs and print address and data
                 if(msg.changed){
-                    if(appConnected) Serial.printlnf("D,%d,%d,%d,%d,%d,%d,%d,%d,%d,%c",msg.addr,msg.byte0,msg.byte1,msg.byte2,msg.byte3,msg.byte4,msg.byte5,msg.byte6,msg.byte7);
-                    else Serial.printlnf("= 0x%08x %02x %02x %02x %02x %02x %02x %02x %02x         =",msg.addr,msg.byte0,msg.byte1,msg.byte2,msg.byte3,msg.byte4,msg.byte5,msg.byte6,msg.byte7);
+                    if(appConnected) Serial.printlnf("D,%lu,%d,%d,%d,%d,%d,%d,%d,%d",msg.addr,msg.byte0,msg.byte1,msg.byte2,msg.byte3,msg.byte4,msg.byte5,msg.byte6,msg.byte7);
+                    else Serial.printlnf("= 0x%08lx %02x %02x %02x %02x %02x %02x %02x %02x         =",msg.addr,msg.byte0,msg.byte1,msg.byte2,msg.byte3,msg.byte4,msg.byte5,msg.byte6,msg.byte7);
                 }
                 msg.changed = false;                                                            //Set latest to false so next print will show change
                 msg.latest = false;
@@ -302,8 +302,8 @@ void parseCommand(){
             canLoopMask = x1;
             loopModeDelay = x2;
             if(loopModeDelay < 25) loopModeDelay = 25;
-            if(appConnected) Serial.printlnf("SDL,%d,%d,%d", canLoopAddress, canLoopMask, loopModeDelay);
-            else Serial.printlnf("Starting data loop on 0x%x with mask 0x%x and delay %dms", canLoopAddress, canLoopMask, loopModeDelay);
+            if(appConnected) Serial.printlnf("SDL,%lu,%d,%lu", canLoopAddress, canLoopMask, loopModeDelay);
+            else Serial.printlnf("Starting data loop on 0x%lx with mask 0x%x and delay %lums", canLoopAddress, canLoopMask, loopModeDelay);
             break;
 
         case ADDR_LOOP_COMMAND:
@@ -318,8 +318,8 @@ void parseCommand(){
             addressLoopData = x2;
             loopModeDelay = x3;
             if(loopModeDelay < 25) loopModeDelay = 25;
-            if(appConnected) Serial.printlnf("SAL,%d,%d,%d", addressLoopStart, addressLoopEnd, loopModeDelay);
-            else Serial.printlnf("Starting address loop from 0x%x to 0x%x and delay %dms", addressLoopStart, addressLoopEnd, loopModeDelay);
+            if(appConnected) Serial.printlnf("SAL,%lu,%lu,%lu", addressLoopStart, addressLoopEnd, loopModeDelay);
+            else Serial.printlnf("Starting address loop from 0x%lx to 0x%lx and delay %lums", addressLoopStart, addressLoopEnd, loopModeDelay);
             break;
             
         case VERSION_COMMAND:
@@ -355,8 +355,8 @@ void emulateCANPackets(){
         for(uint32_t k = addressLoopStart; k <= addressLoopEnd; k++){
             if(Serial.available()) break;            
             lvm.addr = k;
-            if(appConnected) Serial.printlnf("AL,%d,%d,%d,%d,%d,%d,%d,%d,%d",lvm.addr, lvm.byte0, lvm.byte1, lvm.byte2, lvm.byte3, lvm.byte4, lvm.byte5, lvm.byte6, lvm.byte7);
-            else Serial.printlnf("Sending ID 0x%07x %02x %02x %02x %02x %02x %02x %02x %02x", lvm.addr, lvm.byte0, lvm.byte1, lvm.byte2, lvm.byte3, lvm.byte4, lvm.byte5, lvm.byte6, lvm.byte7);
+            if(appConnected) Serial.printlnf("AL,%ld,%d,%d,%d,%d,%d,%d,%d,%d",lvm.addr, lvm.byte0, lvm.byte1, lvm.byte2, lvm.byte3, lvm.byte4, lvm.byte5, lvm.byte6, lvm.byte7);
+            else Serial.printlnf("Sending ID 0x%07lx %02x %02x %02x %02x %02x %02x %02x %02x", lvm.addr, lvm.byte0, lvm.byte1, lvm.byte2, lvm.byte3, lvm.byte4, lvm.byte5, lvm.byte6, lvm.byte7);
             canController.CANSend(lvm);
             delay(loopModeDelay);
         }
@@ -375,8 +375,8 @@ void emulateCANPackets(){
             if(canLoopMask&32) lvm.byte5 = k;
             if(canLoopMask&64) lvm.byte6 = k;
             if(canLoopMask&128) lvm.byte7 = k;
-            if(appConnected) Serial.printlnf("DL,%d,%d,%d,%d,%d,%d,%d,%d,%d",lvm.addr, lvm.byte0, lvm.byte1, lvm.byte2, lvm.byte3, lvm.byte4, lvm.byte5, lvm.byte6, lvm.byte7);
-            else Serial.printlnf("Sending ID 0x%07x %02x %02x %02x %02x %02x %02x %02x %02x", lvm.addr, lvm.byte0, lvm.byte1, lvm.byte2, lvm.byte3, lvm.byte4, lvm.byte5, lvm.byte6, lvm.byte7);
+            if(appConnected) Serial.printlnf("DL,%ld,%d,%d,%d,%d,%d,%d,%d,%d",lvm.addr, lvm.byte0, lvm.byte1, lvm.byte2, lvm.byte3, lvm.byte4, lvm.byte5, lvm.byte6, lvm.byte7);
+            else Serial.printlnf("Sending ID 0x%07lx %02x %02x %02x %02x %02x %02x %02x %02x", lvm.addr, lvm.byte0, lvm.byte1, lvm.byte2, lvm.byte3, lvm.byte4, lvm.byte5, lvm.byte6, lvm.byte7);
             canController.CANSend(lvm);
             delay(loopModeDelay);
         }
@@ -396,12 +396,12 @@ void printLoopMessages(){
     for(uint8_t k = 0; k < MAX_EMULATION_IDS; k++){
         LV_CANMessage p = emuluationMessages[k];
         if(k >= BANK1_EMULATION_IDS){
-            if(appConnected) Serial.printlnf("B2,%d,%d,%d,%d,%d,%d,%d,%d,%d",p.addr,p.byte0,p.byte1,p.byte2,p.byte3,p.byte4,p.byte5,p.byte6,p.byte7);
-            else Serial.printlnf("Bank 2 ID 0x%x: %x %x %x %x %x %x %x %x",p.addr,p.byte0,p.byte1,p.byte2,p.byte3,p.byte4,p.byte5,p.byte6,p.byte7);    //Echo back to user
+            if(appConnected) Serial.printlnf("B2,%lu,%d,%d,%d,%d,%d,%d,%d,%d",p.addr,p.byte0,p.byte1,p.byte2,p.byte3,p.byte4,p.byte5,p.byte6,p.byte7);
+            else Serial.printlnf("Bank 2 ID 0x%lx: %x %x %x %x %x %x %x %x",p.addr,p.byte0,p.byte1,p.byte2,p.byte3,p.byte4,p.byte5,p.byte6,p.byte7);    //Echo back to user
         }
         else{
-            if(appConnected) Serial.printlnf("B1,%d,%d,%d,%d,%d,%d,%d,%d,%d",p.addr,p.byte0,p.byte1,p.byte2,p.byte3,p.byte4,p.byte5,p.byte6,p.byte7);
-            else Serial.printlnf("Bank 1 ID 0x%x: %x %x %x %x %x %x %x %x",p.addr,p.byte0,p.byte1,p.byte2,p.byte3,p.byte4,p.byte5,p.byte6,p.byte7);    //Echo back to user
+            if(appConnected) Serial.printlnf("B1,%lu,%d,%d,%d,%d,%d,%d,%d,%d",p.addr,p.byte0,p.byte1,p.byte2,p.byte3,p.byte4,p.byte5,p.byte6,p.byte7);
+            else Serial.printlnf("Bank 1 ID 0x%lx: %x %x %x %x %x %x %x %x",p.addr,p.byte0,p.byte1,p.byte2,p.byte3,p.byte4,p.byte5,p.byte6,p.byte7);    //Echo back to user
         }
     }
     Serial.println("DONE");
@@ -410,7 +410,7 @@ void printLoopMessages(){
 //Prints out large list of available commands and their arguments
 void printHelpMenu(){
     Serial.printlnf("======================================= WELCOME TO THE CAN BUS ANALYZER =========================================");
-    Serial.printlnf("=      Version: %3s                  Current UART BAUD: %07d                Current CAN BAUD: %07d        =", SOFTWARE_VERSION, currentBaudRate, convertBaudRateToParticle(canController.CurrentBaudRate()));
+    Serial.printlnf("=      Version: %3s                  Current UART BAUD: %07lu                Current CAN BAUD: %07lu        =", SOFTWARE_VERSION, currentBaudRate, convertBaudRateToParticle(canController.CurrentBaudRate()));
     Serial.printlnf("=================================================================================================================");
     Serial.printlnf("= Avaliable Commands   | Arguments (d = dec, x = hex) | Info                                                    =");
     Serial.printlnf("= 'h' - Help           | h - - - - - - - - -          | Prints this window                                      =");
@@ -434,8 +434,8 @@ void receiveCANMessages(){
     LV_CANMessage rxMessage;
     if(canController.receive(rxMessage)){                   //Check if the CAN controller has received a message
         if(printAllReceviedMessages){
-            if(appConnected) Serial.printlnf("A,%ld,%d,%d,%d,%d,%d,%d,%d,%d,%d",millis(), rxMessage.addr, rxMessage.byte0, rxMessage.byte1, rxMessage.byte2, rxMessage.byte3, rxMessage.byte4, rxMessage.byte5, rxMessage.byte6, rxMessage.byte7);
-            else Serial.printlnf("%09ld Received ID 0x%07x %02x %02x %02x %02x %02x %02x %02x %02x",millis(), rxMessage.addr, rxMessage.byte0, rxMessage.byte1, rxMessage.byte2, rxMessage.byte3, rxMessage.byte4, rxMessage.byte5, rxMessage.byte6, rxMessage.byte7);
+            if(appConnected) Serial.printlnf("A,%lu,%lu,%d,%d,%d,%d,%d,%d,%d,%d",millis(), rxMessage.addr, rxMessage.byte0, rxMessage.byte1, rxMessage.byte2, rxMessage.byte3, rxMessage.byte4, rxMessage.byte5, rxMessage.byte6, rxMessage.byte7);
+            else Serial.printlnf("%09ld Received ID 0x%07lx %02x %02x %02x %02x %02x %02x %02x %02x",millis(), rxMessage.addr, rxMessage.byte0, rxMessage.byte1, rxMessage.byte2, rxMessage.byte3, rxMessage.byte4, rxMessage.byte5, rxMessage.byte6, rxMessage.byte7);
         }
         messageDictionary.updateOrInsertMessage(rxMessage); //Update or push it into the dictionary if there was a message
     }

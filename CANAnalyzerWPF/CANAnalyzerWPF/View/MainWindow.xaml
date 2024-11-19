@@ -10,7 +10,7 @@
         d:DataContext="{d:DesignInstance viewModels:CANAnalyzerViewModel}">
     <Viewbox>
         <StackPanel Orientation="Vertical">
-            <Label Content="CAN Bus Analyzer" FontFamily="Aptos" FontWeight="Bold" FontSize="20"/>
+            <Label Content="{Binding CANAnalyzerInfo}" FontFamily="Aptos" FontWeight="Bold" FontSize="20"/>
             <StackPanel Orientation="Horizontal">
                 <Button Content="Refresh Ports" Width="100" Height="25" VerticalAlignment="Bottom" Margin="25,0,25,0" Command="{Binding RefreshPortButtonCommand}" IsEnabled="{Binding OpenPortEnabled}"/>
                 <StackPanel Orientation="Vertical">
@@ -20,6 +20,10 @@
                 <StackPanel Orientation="Vertical">
                     <Label Content="COM Baud Rate" FontFamily="Aptos" FontWeight="Bold" Margin="25,0,10,0"/>
                     <ComboBox x:Name="cboComBaudSelector" Width="150" Height="25" VerticalAlignment="Top" Margin="25,0,10,0" ItemsSource="{Binding AvailableBaudRates}" SelectedItem="{Binding BaudRate}" IsEnabled="{Binding COMSelectorEnabled}"/>
+                </StackPanel>
+                <StackPanel Orientation="Vertical">
+                    <Label Content="CAN Baud Rate" FontFamily="Aptos" FontWeight="Bold" Margin="25,0,10,0"/>
+                    <ComboBox x:Name="cboCanBaudSelector" Width="150" Height="25" VerticalAlignment="Top" Margin="25,0,10,0" ItemsSource="{Binding AvailableCANBaudRates}" SelectedItem="{Binding CANBaudRate}" IsEnabled="{Binding COMSelectorEnabled}"/>
                 </StackPanel>
                 <Button Content="Open Port" Width="100" Height="25" VerticalAlignment="Bottom" Margin="25,10,0,0" Command="{Binding OpenPortButtonCommand}" IsEnabled="{Binding OpenPortEnabled}"/>
                 <Button Content="Close Port" Width="100" Height="25" VerticalAlignment="Bottom" Margin="25,10,0,0" Command="{Binding ClosePortButtonCommand}" IsEnabled="{Binding ClosePortEnabled}"/>
@@ -42,7 +46,7 @@
                     </StackPanel>
                 </TabItem>
                 <!--Control for doing continuout message emulation.-->
-                <TabItem Header="Message Emulation">
+                <TabItem Header="Message Sending">
                     <StackPanel Orientation="Vertical">
                         <StackPanel Orientation="Vertical" Width="950" HorizontalAlignment="Left">
                             <Grid Width="950">
@@ -126,6 +130,10 @@
                         </StackPanel>
                     </StackPanel>
                 </TabItem>
+                <!--Control for looping over CAN addresses or data-->
+                <TabItem Header="Message Loops">
+
+                </TabItem>
                 <!--Control for receiving filtered messages-->
                 <TabItem Header="Filtered Message Table">
                     <StackPanel Orientation="Horizontal">
@@ -145,6 +153,10 @@
                                 </DataGrid.Columns>
                             </DataGrid>
                         </Grid>
+                        <StackPanel Orientation="Vertical">
+                            <Button Content="Save Messages To File" Width="200" Height="25" Grid.Column="9" VerticalAlignment="Top" Margin="20,20" Command="{Binding SaveFilterMessagesToFile}" IsEnabled="{Binding SendDataEnabled}"/>
+                            <Button Content="Clear Messages" Width="200" Height="25" Grid.Column="9" VerticalAlignment="Top" Margin="20,20" Command="{Binding ClearFilterMessages}" IsEnabled="{Binding SendDataEnabled}"/>
+                        </StackPanel>
                     </StackPanel>
                 </TabItem>
                 <!--Control for dumping raw CAN data-->
