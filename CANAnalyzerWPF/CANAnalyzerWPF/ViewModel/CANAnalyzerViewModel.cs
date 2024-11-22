@@ -31,13 +31,19 @@ namespace CANAnalyzerWPF.ViewModel
         private bool closePortEnabled = false;
         private bool sendDataEnabled = false;
         private ObservableCollection<string> rxData;
+        private ObservableCollection<string> addressLoopData;
+        private ObservableCollection<string> dataLoopData;
         private ObservableCollection<string> availablePorts;
         private ObservableCollection<CANMessage> allCANMessages;
         private ObservableCollection<CANMessage> distinctCANMessages;
         private string txData;
         private readonly object _rxDataLock = false;
+        private readonly object _addressLoopLock = false;
+        private readonly object _dataLoopLock = false;
         private readonly object _allDataLock = false;
         private CANMessage uiMessage;
+        private CANDataLoop dataLoop;
+        private CANAddressLoop addressLoop;
         private int bank1MessageIndex;
         private int bank2MessageIndex;
         volatile bool receivedBackMessages;
@@ -61,6 +67,8 @@ namespace CANAnalyzerWPF.ViewModel
         {
             TXData = "";
             RXData = new ObservableCollection<string>();
+            AddressLoopData = new ObservableCollection<string>();
+            DataLoopData = new ObservableCollection<string>();
 
             allCANMessages = new ObservableCollection<CANMessage>();
             distinctCANMessages = new ObservableCollection<CANMessage>();
@@ -68,6 +76,8 @@ namespace CANAnalyzerWPF.ViewModel
             receivedBackMessages = false;
 
             uiMessage = new CANMessage();
+            dataLoop = new CANDataLoop();
+            addressLoop = new CANAddressLoop();
             bank1MessageIndex = 0;
             bank2MessageIndex = 0;
 
@@ -79,7 +89,7 @@ namespace CANAnalyzerWPF.ViewModel
             BaudRate = SerialBaudRates.BaudRates.First();
             CANBaudRate = CANBaudRates.BaudRates.Contains(defaultCANBaudRate) ? defaultCANBaudRate : CANBaudRates.BaudRates.First();    //By default set 500000
 
-            CANAnalyzerInfo = generateInfoString();
+            CANAnalyzerInfo = GenerateInfoString();
         }
 
         /// <summary>
@@ -119,7 +129,7 @@ namespace CANAnalyzerWPF.ViewModel
             Thread.Sleep(30);
             TXData = (char)SerialCommand.CAN_BAUD_COMMAND + " " + CANBaudRate.ToString();
             SendData();
-            CANAnalyzerInfo = generateInfoString();
+            CANAnalyzerInfo = GenerateInfoString();
         }
 
         /// <summary>
@@ -132,7 +142,7 @@ namespace CANAnalyzerWPF.ViewModel
             OpenPortEnabled = true;        //Enable open port button while not connected to serial
             ClosePortEnabled = false;        //Disable close port button while not connected to serial
             SendDataEnabled = false;         //Disable send data button while not connected to serial
-            CANAnalyzerInfo = generateInfoString();
+            CANAnalyzerInfo = GenerateInfoString();
         }
 
         /// <summary>
@@ -171,7 +181,7 @@ namespace CANAnalyzerWPF.ViewModel
         /// Clears all messages being emulated. Separated by bank.
         /// </summary>
         /// <param name="bankSet">Which bank to clear messages from. False = Bank 1, True = Bank 2.</param>
-        void flushMessageBank(bool bankSet)
+        void FlushMessageBank(bool bankSet)
         {
             if(bankSet) TXData = string.Format("{0}", (char)SerialCommand.FLUSH_COMMAND_2);
             else TXData = string.Format("{0}", (char)SerialCommand.FLUSH_COMMAND_1);
@@ -181,7 +191,7 @@ namespace CANAnalyzerWPF.ViewModel
         /// <summary>
         /// Queries all messages being emulated by the Analyzer
         /// </summary>
-        void queryMessages()
+        void QueryMessages()
         {
             TXData = string.Format("{0}", (char)SerialCommand.QUERY_LIST_COMMAND);
             SendData();
@@ -191,7 +201,7 @@ namespace CANAnalyzerWPF.ViewModel
         /// Transmits a CAN Message one time
         /// </summary>
         /// <param name="msg">CANMessage that should be transmitted one time</param>
-        void sendMessageOnce(CANMessage msg)
+        void SendMessageOnce(CANMessage msg)
         {
             char command = (char)SerialCommand.SINGLE_PACKET_COMMAND;
             if (msg.ID == 0) return;
@@ -200,25 +210,56 @@ namespace CANAnalyzerWPF.ViewModel
         }
 
         /// <summary>
+        /// Transmits a series of CAN Messages on the same address with a sweep on the data bytes specified by the bit mask
+        /// </summary>
+        void SendDataLoop()
+        {
+            char command = (char)SerialCommand.DATA_LOOP_COMMAND;
+            if (DataLoop.Address == 0) return;
+            TXData = string.Format("{0} {1} {2} {3}", command, DataLoop.AddressHex, DataLoop.BitMaskHex, DataLoop.DelayHex);
+            SendData();
+        }
+
+        /// <summary>
+        /// Queries help menu from CAN Analyzer
+        /// </summary>
+        void PrintHelpMenu()
+        {
+            TXData = string.Format("{0}", (char)SerialCommand.HELP_COMMAND);
+            SendData();
+        }
+
+        /// <summary>
+        /// Transmits a series of CAN Messages with the same data with a sweep on the address specified
+        /// </summary>
+        void SendAddressLoop()
+        {
+            char command = (char)SerialCommand.ADDR_LOOP_COMMAND;
+            if (AddressLoop.StartAddress == 0 || AddressLoop.EndAddress == 0) return;
+            TXData = string.Format("{0} {1} {2} {3} {4}", command, AddressLoop.StartAddressHex, AddressLoop.EndAddressHex, AddressLoop.DataValueHex, AddressLoop.DelayHex);
+            SendData();
+        }
+
+        /// <summary>
         /// Inserts a message into the message list, then updates the Analyzer list with serial commands
         /// </summary>
         /// <param name="bankSet">Indicates which bank to update. False for Bank 1, True for Bank 2</param>
         /// <param name="newMsg">CANMessage that should be added to the MessageDictionary</param>
-        void sendNewMessage(bool bankSet, CANMessage newMsg)
+        void SendNewMessage(bool bankSet, CANMessage newMsg)
         {
             if (bankSet) MessageDictionary.AddOrUpdateMessageBank2(newMsg);      //Add the new message to the recpective bank in MessageDictionary
             else MessageDictionary.AddOrUpdateMessageBank1(newMsg);
-            updateMessages(bankSet);
+            UpdateMessages(bankSet);
         }
 
         /// <summary>
         /// Updates the CAN Analyzer message list to match the MessageDictionary in this program. Flushes messages and then sends all non-zero messages in ObservableCollection
         /// </summary>
         /// <param name="bankSet">Indicates which bank to update. False for Bank 1, True for Bank 2</param>
-        void updateMessages(bool bankSet)
+        void UpdateMessages(bool bankSet)
         {
             //Clear all messages on the Analyzer. These will get replaces by the messages in MessageDictionary
-            flushMessageBank(bankSet);
+            FlushMessageBank(bankSet);
             ObservableCollection<CANMessage> msgBank;
             char command;
             if (bankSet)
@@ -239,7 +280,7 @@ namespace CANAnalyzerWPF.ViewModel
             }
         }
 
-        void updateDistinctMessages(CANMessage newMsg)
+        void UpdateDistinctMessages(CANMessage newMsg)
         {
             for (int k = 0; k < DistinctCANMessages.Count; k++)
             {
@@ -255,7 +296,7 @@ namespace CANAnalyzerWPF.ViewModel
             DistinctCANMessages = new ObservableCollection<CANMessage>(DistinctCANMessages.OrderBy(s => s.ID));
         }
 
-        private string generateInfoString()
+        private string GenerateInfoString()
         {
             string info = "";
             if (Serial.IsOpen)
@@ -278,15 +319,15 @@ namespace CANAnalyzerWPF.ViewModel
             {
                 receivedBackMessages = true;
             }
-            else if(responseCode.Contains("AL"))        //Response from Address Loop
+            else if(responseCode == "AL")        //Response from Address Loop
             {
-
+                AddressLoopData.Add(command);
             }
-            else if(responseCode.Contains("DL"))        //Response from Data Loop
+            else if(responseCode == "DL")        //Response from Data Loop
             {
-
+                DataLoopData.Add(command);
             }
-            else if(responseCode.Contains("A"))         //CAN Message sent while in "print all" mode
+            else if(responseCode == "A")         //CAN Message sent while in "print all" mode
             {
                 if (r.Length < 10) return;
                 CANMessage rx = new CANMessage(int.Parse(r[2]), int.Parse(r[3]), int.Parse(r[4]), int.Parse(r[5]), int.Parse(r[6]), int.Parse(r[7]), int.Parse(r[8]), int.Parse(r[9]), int.Parse(r[10]), int.Parse(r[1]));
@@ -295,7 +336,7 @@ namespace CANAnalyzerWPF.ViewModel
                 DispatcherPriority.Background,
                 new Action(() => {
                     AllCANMessages.Add(rx);
-                    updateDistinctMessages(rx);
+                    UpdateDistinctMessages(rx);
                 }));
                 
             }
@@ -406,6 +447,38 @@ namespace CANAnalyzerWPF.ViewModel
         }
 
         /// <summary>
+        /// A list of all data that was received by the serial port
+        /// </summary>
+        public ObservableCollection<string> AddressLoopData
+        {
+            get
+            {
+                return addressLoopData;
+            }
+            private set
+            {
+                addressLoopData = value;
+                BindingOperations.EnableCollectionSynchronization(addressLoopData, _addressLoopLock);
+            }
+        }
+
+        /// <summary>
+        /// A list of all data that was received by the serial port
+        /// </summary>
+        public ObservableCollection<string> DataLoopData
+        {
+            get
+            {
+                return dataLoopData;
+            }
+            private set
+            {
+                dataLoopData = value;
+                BindingOperations.EnableCollectionSynchronization(dataLoopData, _dataLoopLock);
+            }
+        }
+
+        /// <summary>
         /// A string of data the user wishes to transmit over serial. Populated by the text box on the UI.
         /// </summary>
         public string TXData
@@ -438,6 +511,38 @@ namespace CANAnalyzerWPF.ViewModel
             set
             {
                 uiMessage = value;
+                OnPropertyChanged();
+            }
+        }
+
+        /// <summary>
+        /// Object for holding information about the address loop function.
+        /// </summary>
+        public CANAddressLoop AddressLoop 
+        {
+            get
+            {
+                return addressLoop;
+            }
+            set 
+            { 
+                addressLoop = value;
+                OnPropertyChanged();
+            }
+        }
+
+        /// <summary>
+        /// Object for holding information about the data loop function.
+        /// </summary>
+        public CANDataLoop DataLoop
+        {
+            get
+            {
+                return dataLoop;
+            }
+            set
+            {
+                dataLoop = value;
                 OnPropertyChanged();
             }
         }
@@ -643,7 +748,7 @@ namespace CANAnalyzerWPF.ViewModel
         }
 
         /// <summary>
-        /// Command to add a CAN message to message bank 1
+        /// Command to send the CAN bus packet on the UI on CAN one time
         /// </summary> 
         private RelayCommand _sendMessageOnceCommand;
         public RelayCommand SendMessageOnceCommand
@@ -652,7 +757,54 @@ namespace CANAnalyzerWPF.ViewModel
             {
                 return _sendMessageOnceCommand ?? (_sendMessageOnceCommand = new RelayCommand(obj =>
                 {
-                    sendMessageOnce(UICANMessage);
+                    SendMessageOnce(UICANMessage);
+                }));
+            }
+        }
+
+        /// <summary>
+        /// Command to start a CAN Message data loop. Loops all data values on one address
+        /// </summary> 
+        private RelayCommand _startDataLoopCommand;
+        public RelayCommand StartDataLoopCommand
+        {
+            get
+            {
+                return _startDataLoopCommand ?? (_startDataLoopCommand = new RelayCommand(obj =>
+                {
+                    DataLoopData.Clear();
+                    SendDataLoop();
+                }));
+            }
+        }
+
+        /// <summary>
+        /// Command to start a CAN Message data loop. Loops all data values on one address
+        /// </summary> 
+        private RelayCommand _startAddressLoopCommand;
+        public RelayCommand StartAddressLoopCommand
+        {
+            get
+            {
+                return _startAddressLoopCommand ?? (_startAddressLoopCommand = new RelayCommand(obj =>
+                {
+                    AddressLoopData.Clear();
+                    SendAddressLoop();
+                }));
+            }
+        }
+
+        /// <summary>
+        /// Send a character to the CAN Analyzer while in a loop to break out of the loop
+        /// </summary> 
+        private RelayCommand _stopLoopCommand;
+        public RelayCommand StopLoopCommand
+        {
+            get
+            {
+                return _stopLoopCommand ?? (_stopLoopCommand = new RelayCommand(obj =>
+                {
+                    PrintHelpMenu();
                 }));
             }
         }
@@ -667,7 +819,7 @@ namespace CANAnalyzerWPF.ViewModel
             {
                 return _addBank1MessageCommand ?? (_addBank1MessageCommand = new RelayCommand(obj =>
                 {
-                    sendNewMessage(false, UICANMessage);
+                    SendNewMessage(false, UICANMessage);
                 }));
             }
         }
@@ -682,7 +834,7 @@ namespace CANAnalyzerWPF.ViewModel
             {
                 return _addBank2MessageCommand ?? (_addBank2MessageCommand = new RelayCommand(obj =>
                 {
-                    sendNewMessage(true, UICANMessage);
+                    SendNewMessage(true, UICANMessage);
                 }));
             }
         }
@@ -698,7 +850,7 @@ namespace CANAnalyzerWPF.ViewModel
                 return _removeBank1MessageCommand ?? (_removeBank1MessageCommand = new RelayCommand(obj =>
                 {
                     MessageDictionary.RemoveMessageBank1(SelectedBank1Index);
-                    updateMessages(false);
+                    UpdateMessages(false);
                 }));
             }
         }
@@ -714,7 +866,7 @@ namespace CANAnalyzerWPF.ViewModel
                 return _removeBank2MessageCommand ?? (_removeBank2MessageCommand = new RelayCommand(obj =>
                 {
                     MessageDictionary.RemoveMessageBank2(SelectedBank2Index);
-                    updateMessages(true);
+                    UpdateMessages(true);
                 }));
             }
         }

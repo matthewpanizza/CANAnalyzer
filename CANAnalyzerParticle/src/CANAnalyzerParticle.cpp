@@ -98,6 +98,7 @@ uint32_t addressLoopStart;                              //Starting address for C
 uint32_t addressLoopEnd;                                //Ending address for CAN address loop mode.
 uint8_t addressLoopData;                                //Data sent on all bytes when looping in address mode
 uint32_t loopModeDelay;                                 //Amount of time between messages when in address or data loop mode (in milliseconds)
+bool loopUseHex = true;                                 //Flag to print out data in loop mode in hex format
 
 uint8_t emulationBank1Index = 0;                        //Bank 1 IDs are stored in indexes RETAINED_EMULATION_IDS through (MAX_EMULATION_IDS-1).
 uint8_t emulationBank2Index = BANK1_EMULATION_IDS;      //Bank 2 IDs are stored in indexes 0 through (RETAINED_EMULATION_IDS-1).
@@ -301,6 +302,7 @@ void parseCommand(){
             canLoopAddress = x0;
             canLoopMask = x1;
             loopModeDelay = x2;
+            loopUseHex = (x3 == 0);
             if(loopModeDelay < 25) loopModeDelay = 25;
             if(appConnected) Serial.printlnf("SDL,%lu,%d,%lu", canLoopAddress, canLoopMask, loopModeDelay);
             else Serial.printlnf("Starting data loop on 0x%lx with mask 0x%x and delay %lums", canLoopAddress, canLoopMask, loopModeDelay);
@@ -317,6 +319,7 @@ void parseCommand(){
             addressLoopEnd = x1;
             addressLoopData = x2;
             loopModeDelay = x3;
+            loopUseHex = (x4 == 0);
             if(loopModeDelay < 25) loopModeDelay = 25;
             if(appConnected) Serial.printlnf("SAL,%lu,%lu,%lu", addressLoopStart, addressLoopEnd, loopModeDelay);
             else Serial.printlnf("Starting address loop from 0x%lx to 0x%lx and delay %lums", addressLoopStart, addressLoopEnd, loopModeDelay);
@@ -355,8 +358,13 @@ void emulateCANPackets(){
         for(uint32_t k = addressLoopStart; k <= addressLoopEnd; k++){
             if(Serial.available()) break;            
             lvm.addr = k;
-            if(appConnected) Serial.printlnf("AL,%ld,%d,%d,%d,%d,%d,%d,%d,%d",lvm.addr, lvm.byte0, lvm.byte1, lvm.byte2, lvm.byte3, lvm.byte4, lvm.byte5, lvm.byte6, lvm.byte7);
-            else Serial.printlnf("Sending ID 0x%07lx %02x %02x %02x %02x %02x %02x %02x %02x", lvm.addr, lvm.byte0, lvm.byte1, lvm.byte2, lvm.byte3, lvm.byte4, lvm.byte5, lvm.byte6, lvm.byte7);
+            if(appConnected){
+                if(loopUseHex) Serial.printlnf("AL,%07lx,%02x,%02x,%02x,%02x,%02x,%02x,%02x,%02x",lvm.addr, lvm.byte0, lvm.byte1, lvm.byte2, lvm.byte3, lvm.byte4, lvm.byte5, lvm.byte6, lvm.byte7);
+                else Serial.printlnf("AL,%ld,%d,%d,%d,%d,%d,%d,%d,%d",lvm.addr, lvm.byte0, lvm.byte1, lvm.byte2, lvm.byte3, lvm.byte4, lvm.byte5, lvm.byte6, lvm.byte7);
+            } 
+            else{
+                Serial.printlnf("Sending ID 0x%07lx %02x %02x %02x %02x %02x %02x %02x %02x", lvm.addr, lvm.byte0, lvm.byte1, lvm.byte2, lvm.byte3, lvm.byte4, lvm.byte5, lvm.byte6, lvm.byte7);
+            }
             canController.CANSend(lvm);
             delay(loopModeDelay);
         }
@@ -375,8 +383,13 @@ void emulateCANPackets(){
             if(canLoopMask&32) lvm.byte5 = k;
             if(canLoopMask&64) lvm.byte6 = k;
             if(canLoopMask&128) lvm.byte7 = k;
-            if(appConnected) Serial.printlnf("DL,%ld,%d,%d,%d,%d,%d,%d,%d,%d",lvm.addr, lvm.byte0, lvm.byte1, lvm.byte2, lvm.byte3, lvm.byte4, lvm.byte5, lvm.byte6, lvm.byte7);
-            else Serial.printlnf("Sending ID 0x%07lx %02x %02x %02x %02x %02x %02x %02x %02x", lvm.addr, lvm.byte0, lvm.byte1, lvm.byte2, lvm.byte3, lvm.byte4, lvm.byte5, lvm.byte6, lvm.byte7);
+            if(appConnected){
+                if(loopUseHex) Serial.printlnf("DL,%07lx,%02x,%02x,%02x,%02x,%02x,%02x,%02x,%02x",lvm.addr, lvm.byte0, lvm.byte1, lvm.byte2, lvm.byte3, lvm.byte4, lvm.byte5, lvm.byte6, lvm.byte7);
+                else Serial.printlnf("DL,%ld,%d,%d,%d,%d,%d,%d,%d,%d",lvm.addr, lvm.byte0, lvm.byte1, lvm.byte2, lvm.byte3, lvm.byte4, lvm.byte5, lvm.byte6, lvm.byte7);
+            }
+            else{
+                Serial.printlnf("Sending ID 0x%07lx %02x %02x %02x %02x %02x %02x %02x %02x", lvm.addr, lvm.byte0, lvm.byte1, lvm.byte2, lvm.byte3, lvm.byte4, lvm.byte5, lvm.byte6, lvm.byte7);
+            }
             canController.CANSend(lvm);
             delay(loopModeDelay);
         }
@@ -426,6 +439,10 @@ void printHelpMenu(){
     Serial.printlnf("= 'n' - CAN Baud       | n x x x x x x x x x          | Continuously sent message for Bank 1                    =");
     Serial.printlnf("= 'l' - Data Loop Mode | l x x x - - - - - -          | Loops data 0-255 on addr x0 on bytes x1 (delay x2)      =");
     Serial.printlnf("= 'o' - Addr Loop Mode | o x x x x - - - - -          | Loops on from addr x0 to x1 with data = x2 (delay x3)   =");
+    Serial.printlnf("= 'v' - Version        | v - - - - - - - - -          | Prints version of the firmware on this device           =");
+    Serial.printlnf("= 'i' - En. App Mode   | i - - - - - - - - -          | Switches format of messages to be easy to read by app   =");
+    Serial.printlnf("= 'j' - Dis. App Mode  | j - - - - - - - - -          | Switches format of messages to be easy to read by human =");
+    Serial.printlnf("= 'q' - Query Messages | q - - - - - - - - -          | Prints out all messages being emulate                   =");
     Serial.printlnf("=================================================================================================================");
 }
 

@@ -132,7 +132,82 @@
                 </TabItem>
                 <!--Control for looping over CAN addresses or data-->
                 <TabItem Header="Message Loops">
-
+                    <StackPanel Orientation="Horizontal">
+                        <StackPanel Orientation="Vertical" Width="600">
+                            <Label Content="Data Loop - Sweeps Data Values on One Address" FontFamily="Aptos" HorizontalAlignment="Center" FontWeight="Bold" Grid.Column="0" Grid.Row="0"/>
+                            <Grid Width="575" HorizontalAlignment="Center">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition  Width="100"/>
+                                    <ColumnDefinition  Width="50"/>
+                                    <ColumnDefinition  Width="50"/>
+                                    <ColumnDefinition  Width="50"/>
+                                    <ColumnDefinition  Width="50"/>
+                                    <ColumnDefinition  Width="50"/>
+                                    <ColumnDefinition  Width="50"/>
+                                    <ColumnDefinition  Width="50"/>
+                                    <ColumnDefinition  Width="50"/>
+                                    <ColumnDefinition  Width="75"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition />
+                                    <RowDefinition />
+                                </Grid.RowDefinitions>
+                                <Label Content="Address (hex)" FontFamily="Aptos" Grid.Column="0" Grid.Row="0"/>
+                                <TextBox x:Name="dlAddress" Width="100" Height="25" Grid.Column="0" Grid.Row="1" Text="{Binding DataLoop.AddressHex}"/>
+                                <Label Content="Byte 0" FontFamily="Aptos" Grid.Column="1" Grid.Row="0"/>
+                                <CheckBox x:Name="b0Send" Grid.Column="1" Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center" IsChecked="{Binding DataLoop.Byte0Enabled}"/>
+                                <Label Content="Byte 1" FontFamily="Aptos" Grid.Column="2" Grid.Row="0"/>
+                                <CheckBox x:Name="b1Send" Grid.Column="2" Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center" IsChecked="{Binding DataLoop.Byte1Enabled}"/>
+                                <Label Content="Byte 2" FontFamily="Aptos" Grid.Column="3" Grid.Row="0"/>
+                                <CheckBox x:Name="b2Send" Grid.Column="3" Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center" IsChecked="{Binding DataLoop.Byte2Enabled}"/>
+                                <Label Content="Byte 3" FontFamily="Aptos" Grid.Column="4" Grid.Row="0"/>
+                                <CheckBox x:Name="b3Send" Grid.Column="4" Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center" IsChecked="{Binding DataLoop.Byte3Enabled}"/>
+                                <Label Content="Byte 4" FontFamily="Aptos" Grid.Column="5" Grid.Row="0"/>
+                                <CheckBox x:Name="b4Send" Grid.Column="5" Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center" IsChecked="{Binding DataLoop.Byte4Enabled}"/>
+                                <Label Content="Byte 5" FontFamily="Aptos" Grid.Column="6" Grid.Row="0"/>
+                                <CheckBox x:Name="b5Send" Grid.Column="6" Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center" IsChecked="{Binding DataLoop.Byte5Enabled}"/>
+                                <Label Content="Byte 6" FontFamily="Aptos" Grid.Column="7" Grid.Row="0"/>
+                                <CheckBox x:Name="b6Send" Grid.Column="7" Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center" IsChecked="{Binding DataLoop.Byte6Enabled}"/>
+                                <Label Content="Byte 7" FontFamily="Aptos" Grid.Column="8" Grid.Row="0"/>
+                                <CheckBox x:Name="b7Send" Grid.Column="8" Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center" IsChecked="{Binding DataLoop.Byte7Enabled}"/>
+                                <Label Content="Delay (ms)" FontFamily="Aptos" Grid.Column="9" Grid.Row="0"/>
+                                <TextBox x:Name="dlDelay" Width="60" Height="25" Grid.Column="9" Grid.Row="1" Text="{Binding DataLoop.Delay}"/>
+                            </Grid>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                <Button Content="Start Loop" Width="150" Margin="10 10" Command="{Binding StartDataLoopCommand}"/>
+                                <Button Content="Stop Loop" Width="150" Margin="10 10" Command="{Binding StopLoopCommand}"/>
+                            </StackPanel>
+                            <ListBox Width="575" Height="350" Margin="10 0" ItemsSource="{Binding DataLoopData}"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Vertical" Width="600">
+                            <Label Content="Address Loop - Sweeps Addresses with the Same Data for All Bytes" HorizontalAlignment="Center" FontFamily="Aptos" FontWeight="Bold" Grid.Column="0" Grid.Row="0"/>
+                            <Grid Width="575" HorizontalAlignment="Center">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition  Width="150"/>
+                                    <ColumnDefinition  Width="150"/>
+                                    <ColumnDefinition  Width="150"/>
+                                    <ColumnDefinition  Width="75"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition />
+                                    <RowDefinition />
+                                </Grid.RowDefinitions>
+                                <Label Content="Start Address (hex)" FontFamily="Aptos" Grid.Column="0" Grid.Row="0" HorizontalContentAlignment="Center"/>
+                                <TextBox x:Name="alStartAddress" Width="125" Height="25" Grid.Column="0" Grid.Row="1" Text="{Binding AddressLoop.StartAddressHex}"/>
+                                <Label Content="End Address (hex)" FontFamily="Aptos" Grid.Column="1" Grid.Row="0"  HorizontalContentAlignment="Center"/>
+                                <TextBox x:Name="alEndAddress" Width="125" Height="25" Grid.Column="1" Grid.Row="1" Text="{Binding AddressLoop.EndAddressHex}"/>
+                                <Label Content="Data Value (hex)" FontFamily="Aptos" Grid.Column="2" Grid.Row="0" HorizontalContentAlignment="Center"/>
+                                <TextBox x:Name="alData" Width="125" Height="25" Grid.Column="2" Grid.Row="1" Text="{Binding AddressLoop.DataValueHex}"/>
+                                <Label Content="Delay (ms)" FontFamily="Aptos" Grid.Column="9" Grid.Row="0"  HorizontalContentAlignment="Center"/>
+                                <TextBox x:Name="alDelay" Width="60" Height="25" Grid.Column="9" Grid.Row="1" Text="{Binding AddressLoop.Delay}"/>
+                            </Grid>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                <Button Content="Start Loop" Width="150" Margin="10 10" Command="{Binding StartAddressLoopCommand}"/>
+                                <Button Content="Stop Loop" Width="150" Margin="10 10" Command="{Binding StopLoopCommand}"/>
+                            </StackPanel>
+                            <ListBox Width="575" Height="350" Margin="10 0" ItemsSource="{Binding AddressLoopData}"/>
+                        </StackPanel>
+                    </StackPanel>
                 </TabItem>
                 <!--Control for receiving filtered messages-->
                 <TabItem Header="Filtered Message Table">
