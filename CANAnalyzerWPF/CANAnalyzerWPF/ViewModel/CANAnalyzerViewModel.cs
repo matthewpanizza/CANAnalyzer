@@ -124,12 +124,14 @@ namespace CANAnalyzerWPF.ViewModel
             {
                 MessageBox.Show("Could not open " + PortName + "!");    //Show pop-up to user
             }
+            Thread.Sleep(50);
             TXData = "i";
             SendData();
-            Thread.Sleep(30);
-            TXData = (char)SerialCommand.CAN_BAUD_COMMAND + " " + CANBaudRate.ToString();
-            SendData();
+            Thread.Sleep(50);
+            //TXData = (char)SerialCommand.CAN_BAUD_COMMAND + " " + CANBaudRate.ToString();
+            //SendData();
             CANAnalyzerInfo = GenerateInfoString();
+            Thread.Sleep(100);
         }
 
         /// <summary>
@@ -167,6 +169,7 @@ namespace CANAnalyzerWPF.ViewModel
         {
             try
             {
+                Serial.WriteTimeout = 1000;
                 Serial.WriteLine(TXData);
                 TXData = "";
             }
@@ -236,7 +239,7 @@ namespace CANAnalyzerWPF.ViewModel
         {
             char command = (char)SerialCommand.ADDR_LOOP_COMMAND;
             if (AddressLoop.StartAddress == 0 || AddressLoop.EndAddress == 0) return;
-            TXData = string.Format("{0} {1} {2} {3} {4}", command, AddressLoop.StartAddressHex, AddressLoop.EndAddressHex, AddressLoop.DataValueHex, AddressLoop.DelayHex);
+            TXData = string.Format("{0} {1} {2} {3} {4} {5}", command, AddressLoop.StartAddressHex, AddressLoop.EndAddressHex, AddressLoop.DataValueHex, AddressLoop.DelayHex, AddressLoop.StepSizeHex);
             SendData();
         }
 

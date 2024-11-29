@@ -121,7 +121,7 @@ namespace CANAnalyzerWPF.Model
             //Create new collection that non-removed IDs will be moved to
             ObservableCollection<CANMessage> tmp = new ObservableCollection<CANMessage>();
 
-            if (MessageBank1.Count <= index) return false;  //Sanity check for out of range
+            if (MessageBank2.Count <= index) return false;  //Sanity check for out of range
 
             CANMessage msg = MessageBank2[index];
 

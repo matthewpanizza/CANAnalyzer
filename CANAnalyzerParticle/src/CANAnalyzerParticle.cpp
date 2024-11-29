@@ -46,7 +46,8 @@ SYSTEM_MODE(SEMI_AUTOMATIC);  //Disable Cloud Connectivity
 #define DELTA_PRINT_COMMAND         'd'             //Takes no args. Prints all CAN IDs that have changed since the last time it was printed. Has field to indicate if the values changed
 #define SINGLE_PACKET_COMMAND       's'             //Sends one CAN message. First arg is address (hex). Next 8 args are the data bytes (in hex) b0, b1, b2...
 #define NEW_B1_MESSAGE_COMMAND      'm'             //Add continuously-sent message to Bank 1. First arg is address (hex). Next 8 args are the data bytes (in hex) b0, b1, b2...
-#define NEW_B2_MESSAGE_COMMAND      'n'          //Add Continuously-sent message to Bank 2. First arg is address (hex). Next 8 args are the data bytes (in hex) b0, b1, b2...
+#define NEW_B2_MESSAGE_COMMAND      'n'             //Add Continuously-sent message to Bank 2. First arg is address (hex). Next 8 args are the data bytes (in hex) b0, b1, b2...
+#define COMBO_LOOP_COMMAND          'k'             //Sends messages across a range of CAN addresses and sends all data combinations on all bytes (0-255)
 #define DATA_LOOP_COMMAND           'l'             //Sends messages on one address and ramps data value on masked bytes from 0-255.
 #define ADDR_LOOP_COMMAND           'o'             //Sends messages with the same data across a range of CAN addresses.
 #define VERSION_COMMAND             'v'             //Prints out the version of this firmware. Use this to determine supported commands
@@ -71,6 +72,7 @@ void parseCommand();
 void printHelpMenu();
 void emulateCANPackets();
 void printLoopMessages();
+void canComboLoop(bool loopAddress, bool loopData, uint32_t startAddress, uint32_t endAddress, uint8_t dataStart, uint8_t dataEnd, uint8_t dataMask, uint32_t stepSize, char loopType);
 
 // Run the application and system concurrently in separate threads
 SYSTEM_THREAD(ENABLED);
@@ -97,7 +99,9 @@ bool canAddressLoop = false;                            //Flag to enter CAN addr
 uint32_t addressLoopStart;                              //Starting address for CAN address loop mode.
 uint32_t addressLoopEnd;                                //Ending address for CAN address loop mode.
 uint8_t addressLoopData;                                //Data sent on all bytes when looping in address mode
+uint8_t addressLoopStepSize;                            //Number of messages to emulate at a time during the address loop
 uint32_t loopModeDelay;                                 //Amount of time between messages when in address or data loop mode (in milliseconds)
+bool canAllComboLoop;                                   //Flag to enter a CAN trasnmit loop where all addresses in a range are looped, and all data values are sent on each byte
 bool loopUseHex = true;                                 //Flag to print out data in loop mode in hex format
 
 uint8_t emulationBank1Index = 0;                        //Bank 1 IDs are stored in indexes RETAINED_EMULATION_IDS through (MAX_EMULATION_IDS-1).
@@ -319,10 +323,28 @@ void parseCommand(){
             addressLoopEnd = x1;
             addressLoopData = x2;
             loopModeDelay = x3;
-            loopUseHex = (x4 == 0);
+            addressLoopStepSize = (x4 > 0) ? x4 : 1;
+            loopUseHex = (x5 == 0);
             if(loopModeDelay < 25) loopModeDelay = 25;
             if(appConnected) Serial.printlnf("SAL,%lu,%lu,%lu", addressLoopStart, addressLoopEnd, loopModeDelay);
             else Serial.printlnf("Starting address loop from 0x%lx to 0x%lx and delay %lums", addressLoopStart, addressLoopEnd, loopModeDelay);
+            break;
+
+        case COMBO_LOOP_COMMAND:
+            if(x0 > x1){
+                if(appConnected) Serial.println("ERR,NEGADDR");
+                else Serial.println("Error. Starting address is less than ending address.");
+                return;
+            }
+            canAllComboLoop = true;
+            addressLoopStart = x0;
+            addressLoopEnd = x1;
+            loopModeDelay = x2;
+            addressLoopStepSize = (x3 > 0) ? x3 : 1;
+            loopUseHex = (x4 == 0);
+            if(loopModeDelay < 25) loopModeDelay = 25;
+            if(appConnected) Serial.printlnf("SCL,%lu,%lu,%lu", addressLoopStart, addressLoopEnd, loopModeDelay);
+            else Serial.printlnf("Starting combo loop from 0x%lx to 0x%lx and delay %lums", addressLoopStart, addressLoopEnd, loopModeDelay);
             break;
             
         case VERSION_COMMAND:
@@ -352,49 +374,22 @@ void parseCommand(){
 
 void emulateCANPackets(){
     if(canAddressLoop){
+        //Comments will use the example of 'o 100 125 ff 64 a' - Loop from 0x100 to 0x125 with a step size of 10
+        //Start loop with sweep for data
         canAddressLoop = false;
-        LV_CANMessage lvm;
-        lvm.update(addressLoopStart, addressLoopData, addressLoopData, addressLoopData, addressLoopData, addressLoopData, addressLoopData, addressLoopData, addressLoopData);
-        for(uint32_t k = addressLoopStart; k <= addressLoopEnd; k++){
-            if(Serial.available()) break;            
-            lvm.addr = k;
-            if(appConnected){
-                if(loopUseHex) Serial.printlnf("AL,%07lx,%02x,%02x,%02x,%02x,%02x,%02x,%02x,%02x",lvm.addr, lvm.byte0, lvm.byte1, lvm.byte2, lvm.byte3, lvm.byte4, lvm.byte5, lvm.byte6, lvm.byte7);
-                else Serial.printlnf("AL,%ld,%d,%d,%d,%d,%d,%d,%d,%d",lvm.addr, lvm.byte0, lvm.byte1, lvm.byte2, lvm.byte3, lvm.byte4, lvm.byte5, lvm.byte6, lvm.byte7);
-            } 
-            else{
-                Serial.printlnf("Sending ID 0x%07lx %02x %02x %02x %02x %02x %02x %02x %02x", lvm.addr, lvm.byte0, lvm.byte1, lvm.byte2, lvm.byte3, lvm.byte4, lvm.byte5, lvm.byte6, lvm.byte7);
-            }
-            canController.CANSend(lvm);
-            delay(loopModeDelay);
-        }
+        canComboLoop(true, true, addressLoopStart, addressLoopEnd, addressLoopData, addressLoopData, 0xFF, addressLoopStepSize, 'A');
     }
     else if(canTransmitLoop){
+        //Start loop with sweep for data
         canTransmitLoop = false;
-        for(uint32_t k = 0; k <= 255; k++){
-            if(Serial.available()) break;
-            LV_CANMessage lvm;
-            lvm.addr = canLoopAddress;
-            if(canLoopMask&1) lvm.byte0 = k;
-            if(canLoopMask&2) lvm.byte1 = k;
-            if(canLoopMask&4) lvm.byte2 = k;
-            if(canLoopMask&8) lvm.byte3 = k;
-            if(canLoopMask&16) lvm.byte4 = k;
-            if(canLoopMask&32) lvm.byte5 = k;
-            if(canLoopMask&64) lvm.byte6 = k;
-            if(canLoopMask&128) lvm.byte7 = k;
-            if(appConnected){
-                if(loopUseHex) Serial.printlnf("DL,%07lx,%02x,%02x,%02x,%02x,%02x,%02x,%02x,%02x",lvm.addr, lvm.byte0, lvm.byte1, lvm.byte2, lvm.byte3, lvm.byte4, lvm.byte5, lvm.byte6, lvm.byte7);
-                else Serial.printlnf("DL,%ld,%d,%d,%d,%d,%d,%d,%d,%d",lvm.addr, lvm.byte0, lvm.byte1, lvm.byte2, lvm.byte3, lvm.byte4, lvm.byte5, lvm.byte6, lvm.byte7);
-            }
-            else{
-                Serial.printlnf("Sending ID 0x%07lx %02x %02x %02x %02x %02x %02x %02x %02x", lvm.addr, lvm.byte0, lvm.byte1, lvm.byte2, lvm.byte3, lvm.byte4, lvm.byte5, lvm.byte6, lvm.byte7);
-            }
-            canController.CANSend(lvm);
-            delay(loopModeDelay);
-        }
+        canComboLoop(true, true, canLoopAddress, canLoopAddress, 0, 255, canLoopMask, 1, 'D');
     }
-    else{   //Not in a loop mode. Do standard message broadcast from 'm' and 'r' commands
+    else if(canAllComboLoop){
+        //Start loop with a sweep for both data and address
+        canAllComboLoop = false;
+        canComboLoop(true, true, addressLoopStart, addressLoopEnd, 0, 0xFF, 0xFF, addressLoopStepSize, 'C'); 
+    }
+    else{   //Not in a loop mode. Do standard message broadcast from 'm' and 'n' commands
         for(uint8_t k = 0; k < MAX_EMULATION_IDS; k++){         //Loop over all messages in the array
             if(emuluationMessages[k].addr){                     //Only transmit messages with non-zero addresses
                 canController.CANSend(emuluationMessages[k]);   //Can just directly pass in the message object
@@ -434,11 +429,12 @@ void printHelpMenu(){
     Serial.printlnf("= 'a' - Print all      | a - - - - - - - - -          | Enables printing all received CAN messages (no filter)  =");
     Serial.printlnf("= 'p' - Print Unique   | p - - - - - - - - -          | Prints list of messages and newest data                 =");
     Serial.printlnf("= 'd' - Print Changed  | d - - - - - - - - -          | Same as 'p', but only messages that have changed        =");
-    Serial.printlnf("= 's' - CAN Baud       | s x x x x x x x x x          | Sends one message on the CAN bus                        =");
-    Serial.printlnf("= 'm' - CAN Baud       | m x x x x x x x x x          | Continuously sent message for Bank 2                    =");
-    Serial.printlnf("= 'n' - CAN Baud       | n x x x x x x x x x          | Continuously sent message for Bank 1                    =");
+    Serial.printlnf("= 's' - Send Message   | s x x x x x x x x x          | Sends one message on the CAN bus                        =");
+    Serial.printlnf("= 'm' - Add Msg Bank 1 | m x x x x x x x x x          | Continuously sent message for Bank 1                    =");
+    Serial.printlnf("= 'n' - Add Msg Bank 2 | n x x x x x x x x x          | Continuously sent message for Bank 2                    =");
     Serial.printlnf("= 'l' - Data Loop Mode | l x x x - - - - - -          | Loops data 0-255 on addr x0 on bytes x1 (delay x2)      =");
-    Serial.printlnf("= 'o' - Addr Loop Mode | o x x x x - - - - -          | Loops on from addr x0 to x1 with data = x2 (delay x3)   =");
+    Serial.printlnf("= 'o' - Addr Loop Mode | o x x x x x - - - -          | Loops from addr x0 to x1, data = x2, delay x3, step x4  =");
+    Serial.printlnf("= 'k' - Combo Loop Md. | k x x x x - - - - -          | Loops from addr x0 to x1, delay x2, step x4, data 0-xFF =");
     Serial.printlnf("= 'v' - Version        | v - - - - - - - - -          | Prints version of the firmware on this device           =");
     Serial.printlnf("= 'i' - En. App Mode   | i - - - - - - - - -          | Switches format of messages to be easy to read by app   =");
     Serial.printlnf("= 'j' - Dis. App Mode  | j - - - - - - - - -          | Switches format of messages to be easy to read by human =");
@@ -504,6 +500,54 @@ void readEEPROM(){
 void updateEEPROM(){
     EEPROM.write(EEPROM_CANS_LOCATION, currentCANSpeed);
     EEPROM.put(EEPROM_BAUD_LOCATION, currentBaudRate);
+}
+
+//Starts a loop sequence that loops over a range of addresses and loops over all data values
+void canComboLoop(bool loopAddress, bool loopData, uint32_t startAddress, uint32_t endAddress, uint8_t dataStart, uint8_t dataEnd, uint8_t dataMask, uint32_t stepSize, char loopType){
+    LV_CANMessage lvm;
+    uint16_t count = loopModeDelay / 10;  //Calculate the number of times to send each set of CAN messages
+    lvm.update(startAddress, dataStart, dataStart, dataStart, dataStart, dataStart, dataStart, dataStart, dataStart);
+    
+    uint16_t j;
+    for(j = startAddress; j <= endAddress; j+=stepSize){
+        for(uint16_t data = dataStart; data <= dataEnd; data++){
+            if(dataMask&1) lvm.byte0 = data;
+            if(dataMask&2) lvm.byte1 = data;
+            if(dataMask&4) lvm.byte2 = data;
+            if(dataMask&8) lvm.byte3 = data;
+            if(dataMask&16) lvm.byte4 = data;
+            if(dataMask&32) lvm.byte5 = data;
+            if(dataMask&64) lvm.byte6 = data;
+            if(dataMask&128) lvm.byte7 = data;
+            for(uint32_t k = 0; k < stepSize; k++){
+                if(Serial.available()) return;            
+                if(j+k > endAddress) continue;
+                if(appConnected){
+                    if(loopUseHex) Serial.printlnf("%cL,%07lx,%02x,%02x,%02x,%02x,%02x,%02x,%02x,%02x", loopType, j+k, lvm.byte0, lvm.byte1, lvm.byte2, lvm.byte3, lvm.byte4, lvm.byte5, lvm.byte6, lvm.byte7);
+                    else Serial.printlnf("%cL,%ld,%d,%d,%d,%d,%d,%d,%d,%d", loopType, j+k, lvm.byte0, lvm.byte1, lvm.byte2, lvm.byte3, lvm.byte4, lvm.byte5, lvm.byte6, lvm.byte7);
+                } 
+                else{
+                    Serial.printlnf("Sending ID 0x%07lx %02x %02x %02x %02x %02x %02x %02x %02x", j+k, lvm.byte0, lvm.byte1, lvm.byte2, lvm.byte3, lvm.byte4, lvm.byte5, lvm.byte6, lvm.byte7);
+                }
+            }
+            for(uint16_t i = 0; i < count; i++){
+                //Send the messages for the Address loop
+                for(uint32_t k = 0; k < stepSize; k++){
+                    if(j+k > endAddress) continue;
+                    lvm.addr = j+k;
+                    canController.CANSend(lvm);
+                }
+                //Send the messages from the Message Banks as well
+                for(uint8_t k = 0; k < BANK1_EMULATION_IDS; k++){       //Only transmit Message Bank 1 messages while in a loop
+                    if(emuluationMessages[k].addr){                     //Only transmit messages with non-zero addresses
+                        canController.CANSend(emuluationMessages[k]);   //Can just directly pass in the message object
+                        delayMicroseconds(50);                          //Wait some time to not overload the controller
+                    }
+                }
+                delay(10);
+            }
+        }
+    }
 }
 
 //Interrupt to perform regular update activities such as updating the RGB LED color

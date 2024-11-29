@@ -86,13 +86,12 @@
                                 <TextBox x:Name="mByte6" Width="50" Height="25" Grid.Column="7" Grid.Row="1" Text="{Binding UICANMessage.Byte6Hex}"/>
                                 <Label Content="Byte 7" FontFamily="Aptos" Grid.Column="8" Grid.Row="0"/>
                                 <TextBox x:Name="mByte7" Width="50" Height="25" Grid.Column="8" Grid.Row="1" Text="{Binding UICANMessage.Byte7Hex}"/>
-                                <Button Content="Send Once" Width="125" Height="25" Grid.Column="9" Grid.Row="1" Command="{Binding AddBank1MessageCommand}" IsEnabled="{Binding SendDataEnabled}"/>
+                                <Button Content="Send Once" Width="125" Height="25" Grid.Column="9" Grid.Row="1" Command="{Binding SendMessageOnceCommand}" IsEnabled="{Binding SendDataEnabled}"/>
                                 <Button Content="Add Bank 1 Message" Width="125" Height="25" Grid.Column="10" Grid.Row="1" Command="{Binding AddBank1MessageCommand}" IsEnabled="{Binding SendDataEnabled}"/>
                                 <Button Content="Add Bank 2 Message" Width="125" Height="25" Grid.Column="11" Grid.Row="1" Command="{Binding AddBank2MessageCommand}" IsEnabled="{Binding SendDataEnabled}"/>
                             </Grid>
                         </StackPanel>
-                        
-                        
+
                         <StackPanel Orientation="Horizontal" Height="400">
                             <StackPanel Orientation="Vertical">
                                 <ListBox Width="500" Height="310" Margin="10 10" ItemsSource="{Binding MessageDictionary.MessageBank1}" SelectedIndex="{Binding SelectedBank1Index}">
@@ -174,8 +173,8 @@
                                 <TextBox x:Name="dlDelay" Width="60" Height="25" Grid.Column="9" Grid.Row="1" Text="{Binding DataLoop.Delay}"/>
                             </Grid>
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                <Button Content="Start Loop" Width="150" Margin="10 10" Command="{Binding StartDataLoopCommand}"/>
-                                <Button Content="Stop Loop" Width="150" Margin="10 10" Command="{Binding StopLoopCommand}"/>
+                                <Button Content="Start Loop" Width="150" Margin="10 10" Command="{Binding StartDataLoopCommand}" IsEnabled="{Binding SendDataEnabled}"/>
+                                <Button Content="Stop Loop" Width="150" Margin="10 10" Command="{Binding StopLoopCommand}" IsEnabled="{Binding SendDataEnabled}"/>
                             </StackPanel>
                             <ListBox Width="575" Height="350" Margin="10 0" ItemsSource="{Binding DataLoopData}"/>
                         </StackPanel>
@@ -183,27 +182,30 @@
                             <Label Content="Address Loop - Sweeps Addresses with the Same Data for All Bytes" HorizontalAlignment="Center" FontFamily="Aptos" FontWeight="Bold" Grid.Column="0" Grid.Row="0"/>
                             <Grid Width="575" HorizontalAlignment="Center">
                                 <Grid.ColumnDefinitions>
-                                    <ColumnDefinition  Width="150"/>
-                                    <ColumnDefinition  Width="150"/>
-                                    <ColumnDefinition  Width="150"/>
-                                    <ColumnDefinition  Width="75"/>
+                                    <ColumnDefinition  Width="125"/>
+                                    <ColumnDefinition  Width="125"/>
+                                    <ColumnDefinition  Width="125"/>
+                                    <ColumnDefinition  Width="100"/>
+                                    <ColumnDefinition  Width="100"/>
                                 </Grid.ColumnDefinitions>
                                 <Grid.RowDefinitions>
                                     <RowDefinition />
                                     <RowDefinition />
                                 </Grid.RowDefinitions>
                                 <Label Content="Start Address (hex)" FontFamily="Aptos" Grid.Column="0" Grid.Row="0" HorizontalContentAlignment="Center"/>
-                                <TextBox x:Name="alStartAddress" Width="125" Height="25" Grid.Column="0" Grid.Row="1" Text="{Binding AddressLoop.StartAddressHex}"/>
+                                <TextBox x:Name="alStartAddress" Width="100" Height="25" Grid.Column="0" Grid.Row="1" Text="{Binding AddressLoop.StartAddressHex}"/>
                                 <Label Content="End Address (hex)" FontFamily="Aptos" Grid.Column="1" Grid.Row="0"  HorizontalContentAlignment="Center"/>
-                                <TextBox x:Name="alEndAddress" Width="125" Height="25" Grid.Column="1" Grid.Row="1" Text="{Binding AddressLoop.EndAddressHex}"/>
+                                <TextBox x:Name="alEndAddress" Width="100" Height="25" Grid.Column="1" Grid.Row="1" Text="{Binding AddressLoop.EndAddressHex}"/>
                                 <Label Content="Data Value (hex)" FontFamily="Aptos" Grid.Column="2" Grid.Row="0" HorizontalContentAlignment="Center"/>
-                                <TextBox x:Name="alData" Width="125" Height="25" Grid.Column="2" Grid.Row="1" Text="{Binding AddressLoop.DataValueHex}"/>
-                                <Label Content="Delay (ms)" FontFamily="Aptos" Grid.Column="9" Grid.Row="0"  HorizontalContentAlignment="Center"/>
-                                <TextBox x:Name="alDelay" Width="60" Height="25" Grid.Column="9" Grid.Row="1" Text="{Binding AddressLoop.Delay}"/>
+                                <TextBox x:Name="alData" Width="100" Height="25" Grid.Column="2" Grid.Row="1" Text="{Binding AddressLoop.DataValueHex}"/>
+                                <Label Content="Delay (ms)" FontFamily="Aptos" Grid.Column="3" Grid.Row="0"  HorizontalContentAlignment="Center"/>
+                                <TextBox x:Name="alDelay" Width="60" Height="25" Grid.Column="3" Grid.Row="1" Text="{Binding AddressLoop.Delay}"/>
+                                <Label Content="Step Size (dec)" FontFamily="Aptos" Grid.Column="4" Grid.Row="0"  HorizontalContentAlignment="Center"/>
+                                <TextBox x:Name="stepSize" Width="60" Height="25" Grid.Column="4" Grid.Row="1" Text="{Binding AddressLoop.StepSize}"/>
                             </Grid>
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                <Button Content="Start Loop" Width="150" Margin="10 10" Command="{Binding StartAddressLoopCommand}"/>
-                                <Button Content="Stop Loop" Width="150" Margin="10 10" Command="{Binding StopLoopCommand}"/>
+                                <Button Content="Start Loop" Width="150" Margin="10 10" Command="{Binding StartAddressLoopCommand}" IsEnabled="{Binding SendDataEnabled}"/>
+                                <Button Content="Stop Loop" Width="150" Margin="10 10" Command="{Binding StopLoopCommand}" IsEnabled="{Binding SendDataEnabled}"/>
                             </StackPanel>
                             <ListBox Width="575" Height="350" Margin="10 0" ItemsSource="{Binding AddressLoopData}"/>
                         </StackPanel>

@@ -65,9 +65,11 @@
         "xlocbuf": "cpp",
         "xlocinfo": "cpp",
         "xmemory": "cpp",
-        "xtr1common": "cpp"
+        "xtr1common": "cpp",
+        "random": "cpp"
     },
     "particle.firmwareVersion": "3.3.0",
     "particle.targetPlatform": "photon",
-    "particle.debugWarningShown": true
+    "particle.debugWarningShown": true,
+    "particle.targetDevice": "bacon_aardvark"
 }

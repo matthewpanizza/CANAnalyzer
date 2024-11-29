@@ -99,6 +99,7 @@ namespace CANAnalyzerWPF.Model
             StartAddress = 0x100;
             EndAddress = 0x200;
             Delay = 100;
+            StepSize = 1;
             dataValue = 0;
         }
 
@@ -148,6 +149,21 @@ namespace CANAnalyzerWPF.Model
                 Delay = tmp;
             }
         }
+        public int StepSize { get; set; }
+        public string StepSizeHex
+        {
+            get
+            {
+                return StepSize.ToString("X");
+            }
+            set
+            {
+                int tmp = int.Parse(value, System.Globalization.NumberStyles.HexNumber);
+                if (tmp < 0) tmp = 0;
+                if (tmp > 536870911) tmp = 536870911;
+                StepSize = tmp;
+            }
+        }
         public int DataValue 
         { 
             get
@@ -164,14 +180,14 @@ namespace CANAnalyzerWPF.Model
         {
             get
             {
-                return Delay.ToString("X");
+                return DataValue.ToString("X");
             }
             set
             {
                 int tmp = int.Parse(value, System.Globalization.NumberStyles.HexNumber);
                 if (tmp < 0) tmp = 0;
                 if (tmp > 255) tmp = 255;
-                Delay = tmp;
+                DataValue = tmp;
             }
         }
     }
