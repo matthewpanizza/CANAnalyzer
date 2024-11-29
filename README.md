@@ -673,7 +673,7 @@ To launch the app, you'll need to have the [.NET 8 Runtime](https://dotnet.micro
 
 <img src="Pictures/NET8.png" width="50%">
 
-The binaries are in ```CANAnalyzerWPF\bin\Debug\net8.0-windows```, and you'll want to run ```CANAnalyzerWPF.exe```. If you want to debug/develop more with this app, install [Visual Studio Community](https://visualstudio.microsoft.com/vs/community/) and the C# development tools.
+The binaries are in ```CANAnalyzerWPF\bin\Release\net8.0-windows```, and you'll want to run ```CANAnalyzerWPF.exe```. If you want to debug/develop more with this app, install [Visual Studio Community](https://visualstudio.microsoft.com/vs/community/) and the C# development tools.
 
 The UI itself has tabs for each of the commands, and the first page is a basic Serial console. After connecting the CAN Analyzer, you'll want to choose the correct COM port, Serial baud rate, and CAN baud rate. Then click "Open" to open the COM port.
 
